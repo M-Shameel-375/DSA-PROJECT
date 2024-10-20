@@ -33,21 +33,23 @@ private:
     Node* root;
 
     // Helper function to insert contact into the BST
-    Node* insert(Node* node, Contact contact) {
+   Node* insert(Node* node, Contact contact) {
         if (node == nullptr) {
             return new Node(contact);
         }
 
-        // Insert based on name comparison, but allow same names with different numbers or emails
+        // First compare by name
         if (contact.name < node->contact.name) {
             node->left = insert(node->left, contact);
         } else if (contact.name > node->contact.name) {
             node->right = insert(node->right, contact);
         } else {
-            // Allow same name, but check if number or email are different
+            // Same name, compare number and email
             if (contact.number != node->contact.number || contact.email != node->contact.email) {
-                node->right = insert(node->right, contact);  // Insert with same name but different details
+                // Insert new contact with the same name but different number/email in the right subtree
+                node->right = insert(node->right, contact);  
             } else {
+                // Contact with the same name, number, and email already exists
                 cout << "\nContact with the same name, number, and email already exists.\n";
             }
         }
@@ -55,15 +57,16 @@ private:
     }
 
     // Helper function to search a contact by name
-    Node* search(Node* node, string name) {
-        if (node == nullptr || node->contact.name == name) {
+    Node* search(Node* node, string name, string number, string email) {
+        if (node == nullptr) return nullptr;
+
+        if (node->contact.name == name && node->contact.number == number && node->contact.email == email) {
             return node;
         }
-
         if (name < node->contact.name) {
-            return search(node->left, name);
+            return search(node->left, name, number, email);
         }
-        return search(node->right, name);
+        return search(node->right, name, number, email);
     }
 
     // Helper function to display contacts in-order (sorted)
@@ -113,13 +116,6 @@ public:
     BST() : root(nullptr) {}
 
     // Make the validation functions public to be accessible by other classes
-    bool isValidPhoneNumber(const string& number) {
-        // Check if the number is valid PTCL or Local number
-        if (number.size() == 10 || number.size() == 11) {
-            return all_of(number.begin(), number.end(), ::isdigit);
-        }
-        return false;
-    }
 
     bool isValidEmail(const string& email) {
         return email.size() > 10 && email.substr(email.size() - 10) == "@gmail.com";
@@ -129,8 +125,12 @@ public:
         root = insert(root, contact);
     }
 
+    bool contactExists(const string& name, const string& number, const string& email) {
+        return search(root, name, number, email) != nullptr;
+    }
+
     void searchContact(string name) {
-        Node* result = search(root, name);
+        Node* result = search(root, name, "", "");
         if (result) {
             cout << "\nContact found:\n";
             displayContact(result->contact);
@@ -194,16 +194,8 @@ public:
         cout << "\nEnter name: ";
         getline(cin, name);
 
-        // Input and validate number
-        while (true) {
-            cout << "Enter number (PTCL or Local): ";
+            cout << "Enter number : ";
             getline(cin, number);
-            if (bst.isValidPhoneNumber(number)) {
-                break;
-            } else {
-                cout << "\nInvalid number. Please enter a valid PTCL or Local number (10-11 digits).\n";
-            }
-        }
 
         // Input and validate email
         while (true) {
@@ -220,9 +212,14 @@ public:
         cout << "Enter type (PTCL, Local, Emergency): ";
         getline(cin, type);
 
-        Contact newContact(name, number, email, type);
-        bst.insert(newContact);
-        cout << "\nContact added successfully!\n";
+        // Check if contact already exists
+        if (bst.contactExists(name, number, email)) {
+            cout << "\nA contact with the same name, number, and email already exists.\n";
+        } else {
+            Contact newContact(name, number, email, type);
+            bst.insert(newContact);
+            cout << "\nContact added successfully!\n";
+        }
     }
 
     void searchContact() {
@@ -298,4 +295,5 @@ public:
 int main() {
     PhoneBookApp app;
     app.startApp();
+    return 0;
 }

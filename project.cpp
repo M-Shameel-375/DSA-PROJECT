@@ -271,6 +271,7 @@ public:
         cout << "\t5. Display All Contacts\n";
         cout << "\t6. Change Password\n";
         cout << "\t0. Exit\n";
+        cout<<"aja";
         cout << "\tEnter your choice: ";
     }
 

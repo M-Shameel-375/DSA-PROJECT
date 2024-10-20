@@ -45,25 +45,11 @@ private:
             node->right = insert(node->right, contact);
         } else {
             // Allow same name, but check if number or email are different
-            if (contact.number != node->contact.number ) {
-            node->left = insert(node->left, contact);
-            
+            if (contact.number != node->contact.number || contact.email != node->contact.email) {
+                node->right = insert(node->right, contact);  // Insert with same name but different details
+            } else {
+                cout << "\nContact with the same name, number, and email already exists.\n";
             }
-            else
-            {
-            cout << "\nContact with the same number already exists.\n";
-
-            }
-             if (contact.email != node->contact.email) {
-            node->left = insert(node->left, contact);
-            cout << "\nContact with the same email already exists.\n";
-            } 
-            else{
-            cout << "\nContact with the same email already exists.\n";
-
-
-            }
-
         }
         return node;
     }
@@ -178,24 +164,27 @@ private:
 
 public:
     void startApp() {
-        string choice;
-        do {
-            displayMenu();
-            getline(cin, choice);
-            if (choice == "1") {
-                addContact();
-            } else if (choice == "2") {
-                editContact();
-            } else if (choice == "3") {
-                searchContact();
-            } else if (choice == "4") {
-                deleteContact();
-            } else if (choice == "5") {
-                displayAllContacts();
-            } else if (choice == "6") {
-                changePassword();
-            }
-        } while (choice != "0");
+        // Authenticate before proceeding
+        if (authenticate()) {
+            string choice;
+            do {
+                displayMenu();
+                getline(cin, choice);
+                if (choice == "1") {
+                    addContact();
+                } else if (choice == "2") {
+                    editContact();
+                } else if (choice == "3") {
+                    searchContact();
+                } else if (choice == "4") {
+                    deleteContact();
+                } else if (choice == "5") {
+                    displayAllContacts();
+                } else if (choice == "6") {
+                    changePassword();
+                }
+            } while (choice != "0");
+        }
     }
 
     void addContact() {
@@ -274,6 +263,23 @@ public:
         cout << "\tEnter your choice: ";
     }
 
+    bool authenticate() {
+        int attempts = 0;
+        string inputPassword;
+        while (attempts < 3) {
+            cout << "\nEnter password: ";
+            getline(cin, inputPassword);
+            if (inputPassword == password) {
+                return true;
+            } else {
+                cout << "\nIncorrect password. Try again.\n";
+                attempts++;
+            }
+        }
+        cout << "\nToo many failed attempts. Exiting program.\n";
+        return false;  // Exit if the user fails authentication 3 times
+    }
+
     void changePassword() {
         string oldPassword, newPassword;
         cout << "\nEnter old password: ";
@@ -292,5 +298,4 @@ public:
 int main() {
     PhoneBookApp app;
     app.startApp();
-    return 0;
 }

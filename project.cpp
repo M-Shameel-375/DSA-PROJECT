@@ -15,6 +15,14 @@ public:
 
     Contact(string name = "", string number = "", string email = "", string type = "") 
         : name(name), number(number), email(email), type(type) {}
+
+    friend ostream& operator<<(ostream& os, const Contact& contact) {
+        os << "\nName: " << contact.name
+           << "\nNumber: " << contact.number
+           << "\nEmail: " << contact.email
+           << "\nType: " << contact.type << endl;
+        return os;
+    }
 };
 
 // Node class for Binary Search Tree (BST)
@@ -25,6 +33,10 @@ public:
     Node* right;
 
     Node(Contact contact) : contact(contact), left(nullptr), right(nullptr) {}
+    ~Node() {
+        delete left;
+        delete right;
+    }
 };
 
 // Binary Search Tree (BST) class to store contacts
@@ -32,13 +44,11 @@ class BST {
 private:
     Node* root;
 
-    // Helper function to insert contact into the BST
-   Node* insert(Node* node, Contact contact) {
+    Node* insert(Node* node, Contact contact) {
         if (node == nullptr) {
             return new Node(contact);
         }
 
-        // First compare by name
         if (contact.name < node->contact.name) {
             node->left = insert(node->left, contact);
         } else if (contact.name > node->contact.name) {
@@ -46,21 +56,18 @@ private:
         } else {
             // Same name, compare number and email
             if (contact.number != node->contact.number || contact.email != node->contact.email) {
-                // Insert new contact with the same name but different number/email in the right subtree
-                node->right = insert(node->right, contact);  
+                node->right = insert(node->right, contact);  // Insert with the same name but different info
             } else {
-                // Contact with the same name, number, and email already exists
-                cout << "\nContact with the same name, number, and email already exists.\n";
+                cout << "\nContact already exists with the same name, number, and email.\n";
             }
         }
         return node;
     }
 
-    // Helper function to search a contact by name
-    Node* search(Node* node, string name, string number, string email) {
+    Node* search(Node* node, const string& name, const string& number = "", const string& email = "") const {
         if (node == nullptr) return nullptr;
 
-        if (node->contact.name == name && node->contact.number == number && node->contact.email == email) {
+        if (node->contact.name == name && (number.empty() || node->contact.number == number) && (email.empty() || node->contact.email == email)) {
             return node;
         }
         if (name < node->contact.name) {
@@ -69,16 +76,14 @@ private:
         return search(node->right, name, number, email);
     }
 
-    // Helper function to display contacts in-order (sorted)
-    void inOrder(Node* node) {
+    void inOrder(Node* node) const {
         if (node == nullptr) return;
         inOrder(node->left);
-        displayContact(node->contact);
+        cout << node->contact;
         inOrder(node->right);
     }
 
-    // Helper function to delete a contact from the BST
-    Node* deleteNode(Node* node, string name) {
+    Node* deleteNode(Node* node, const string& name) {
         if (node == nullptr) return node;
 
         if (name < node->contact.name) {
@@ -95,7 +100,6 @@ private:
                 delete node;
                 return temp;
             }
-
             Node* temp = minValueNode(node->right);
             node->contact = temp->contact;
             node->right = deleteNode(node->right, temp->contact.name);
@@ -103,8 +107,7 @@ private:
         return node;
     }
 
-    // Helper function to find the node with minimum value (for deletion)
-    Node* minValueNode(Node* node) {
+    Node* minValueNode(Node* node) const {
         Node* current = node;
         while (current && current->left != nullptr) {
             current = current->left;
@@ -115,9 +118,11 @@ private:
 public:
     BST() : root(nullptr) {}
 
-    // Make the validation functions public to be accessible by other classes
+    ~BST() {
+        delete root;
+    }
 
-    bool isValidEmail(const string& email) {
+    bool isValidEmail(const string& email) const {
         return email.size() > 10 && email.substr(email.size() - 10) == "@gmail.com";
     }
 
@@ -125,140 +130,39 @@ public:
         root = insert(root, contact);
     }
 
-    bool contactExists(const string& name, const string& number, const string& email) {
+    bool contactExists(const string& name, const string& number, const string& email) const {
         return search(root, name, number, email) != nullptr;
     }
 
-    void searchContact(string name) {
-        Node* result = search(root, name, "", "");
+    void searchContact(const string& name) const {
+        Node* result = search(root, name);
         if (result) {
-            cout << "\nContact found:\n";
-            displayContact(result->contact);
+            cout << "\nContact found:\n" << result->contact;
         } else {
             cout << "\nNo contact found with the name " << name << endl;
         }
     }
 
-    void deleteContact(string name) {
+    void deleteContact(const string& name) {
         root = deleteNode(root, name);
         cout << "\nContact deleted (if it existed).\n";
     }
 
-    void displayAllContacts() {
-        cout << "\nDisplaying all contacts:\n";
-        inOrder(root);
-    }
-
-    void displayContact(const Contact& contact) {
-        cout << "\nName: " << contact.name
-             << "\nNumber: " << contact.number
-             << "\nEmail: " << contact.email
-             << "\nType: " << contact.type << endl;
+    void displayAllContacts() const {
+        if (root == nullptr) {
+            cout << "\nNo contacts available.\n";
+        } else {
+            cout << "\nDisplaying all contacts:\n";
+            inOrder(root);
+        }
     }
 };
 
+// Application class that manages user interaction
 class PhoneBookApp {
 private:
-    BST bst; // BST to store contacts
-    string password = "123"; // default password
-
-public:
-    void startApp() {
-        // Authenticate before proceeding
-        if (authenticate()) {
-            string choice;
-            do {
-                displayMenu();
-                getline(cin, choice);
-                if (choice == "1") {
-                    addContact();
-                } else if (choice == "2") {
-                    editContact();
-                } else if (choice == "3") {
-                    searchContact();
-                } else if (choice == "4") {
-                    deleteContact();
-                } else if (choice == "5") {
-                    displayAllContacts();
-                } else if (choice == "6") {
-                    changePassword();
-                }
-            } while (choice != "0");
-        }
-    }
-
-    void addContact() {
-        string name, number, email, type;
-
-        // Input name
-        cout << "\nEnter name: ";
-        getline(cin, name);
-
-            cout << "Enter number : ";
-            getline(cin, number);
-
-        // Input and validate email
-        while (true) {
-            cout << "Enter email (must end with '@gmail.com'): ";
-            getline(cin, email);
-            if (bst.isValidEmail(email)) {
-                break;
-            } else {
-                cout << "\nInvalid email. Please ensure the email ends with '@gmail.com'.\n";
-            }
-        }
-
-        // Input type
-        cout << "Enter type (PTCL, Local, Emergency): ";
-        getline(cin, type);
-
-        // Check if contact already exists
-        if (bst.contactExists(name, number, email)) {
-            cout << "\nA contact with the same name, number, and email already exists.\n";
-        } else {
-            Contact newContact(name, number, email, type);
-            bst.insert(newContact);
-            cout << "\nContact added successfully!\n";
-        }
-    }
-
-    void searchContact() {
-        string name;
-        cout << "\nEnter the name of the contact to search: ";
-        getline(cin, name);
-        bst.searchContact(name);
-    }
-
-    void deleteContact() {
-        string name;
-        cout << "\nEnter the name of the contact to delete: ";
-        getline(cin, name);
-        bst.deleteContact(name);
-    }
-
-    void editContact() {
-        string name;
-        cout << "\nEnter the name of the contact to edit: ";
-        getline(cin, name);
-        bst.deleteContact(name);  // Delete existing contact
-        addContact();             // Add the new contact with updated details
-    }
-
-    void displayAllContacts() {
-        bst.displayAllContacts();
-    }
-
-    void displayMenu() {
-        cout << "\n\n\t__________ Phone Book Menu __________\n";
-        cout << "\t1. Add Contact\n";
-        cout << "\t2. Edit Contact\n";
-        cout << "\t3. Search Contact\n";
-        cout << "\t4. Delete Contact\n";
-        cout << "\t5. Display All Contacts\n";
-        cout << "\t6. Change Password\n";
-        cout << "\t0. Exit\n";
-        cout << "\tEnter your choice: ";
-    }
+    BST bst;
+    string password;
 
     bool authenticate() {
         int attempts = 0;
@@ -289,6 +193,107 @@ public:
         } else {
             cout << "\nIncorrect old password.\n";
         }
+    }
+
+public:
+    PhoneBookApp() : password("123") {}  // Default password
+
+    void startApp() {
+        if (authenticate()) {
+            string choice;
+            do {
+                displayMenu();
+                getline(cin, choice);
+                if (choice == "1") {
+                    system("cls");
+                    addContact();
+                } else if (choice == "2") {
+                    system("cls");
+                    editContact();
+                } else if (choice == "3") {
+                    system("cls");
+                    searchContact();
+                } else if (choice == "4") {
+                    system("cls");
+                    deleteContact();
+                } else if (choice == "5") {
+                    system("cls");
+                    displayAllContacts();
+                } else if (choice == "6") {
+                    system("cls");
+                    changePassword();
+                }
+            } while (choice != "0");
+        }
+    }
+
+    void addContact() {
+        string name, number, email, type;
+
+        cout << "\nEnter name: ";
+        getline(cin, name);
+
+        cout << "Enter number: ";
+        getline(cin, number);
+
+        while (true) {
+            cout << "Enter email (must end with '@gmail.com'): ";
+            getline(cin, email);
+            if (bst.isValidEmail(email)) {
+                break;
+            } else {
+                cout << "\nInvalid email. Please ensure the email ends with '@gmail.com'.\n";
+            }
+        }
+
+        cout << "Enter type (PTCL, Local, Emergency): ";
+        getline(cin, type);
+
+        if (bst.contactExists(name, number, email)) {
+            cout << "\nA contact with the same name, number, and email already exists.\n";
+        } else {
+            Contact newContact(name, number, email, type);
+            bst.insert(newContact);
+            cout << "\nContact added successfully!\n";
+        }
+    }
+
+    void searchContact() {
+        string name;
+        cout << "\nEnter the name of the contact to search: ";
+        getline(cin, name);
+        bst.searchContact(name);
+    }
+
+    void deleteContact() {
+        string name;
+        cout << "\nEnter the name of the contact to delete: ";
+        getline(cin, name);
+        bst.deleteContact(name);
+    }
+
+    void editContact() {
+        string name;
+        cout << "\nEnter the name of the contact to edit: ";
+        getline(cin, name);
+        bst.deleteContact(name);  // Delete existing contact
+        addContact();             // Add new contact with updated details
+    }
+
+    void displayAllContacts() {
+        bst.displayAllContacts();
+    }
+
+    void displayMenu() const {
+        cout << "\n\n\t__________ Phone Book Menu __________\n";
+        cout << "\t1. Add Contact\n";
+        cout << "\t2. Edit Contact\n";
+        cout << "\t3. Search Contact\n";
+        cout << "\t4. Delete Contact\n";
+        cout << "\t5. Display All Contacts\n";
+        cout << "\t6. Change Password\n";
+        cout << "\t0. Exit\n";
+        cout << "\tEnter your choice: ";
     }
 };
 

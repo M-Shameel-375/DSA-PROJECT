@@ -33,7 +33,7 @@ Run the compiled executable.
 The application will prompt for password authentication.
 Once authenticated, the user interface displays a menu for adding, editing, searching, deleting, and displaying all contacts.
 
-**Further Enhancements:**
+## **Further Enhancements:**
 
 **Password Hashing**: Implement secure password hashing for improved security.
 **Platform Independence:** Consider using cross-platform libraries like ncurses for a more portable UI.

@@ -27,17 +27,19 @@ public:
 // Node class for Binary Search Tree (BST)
 class Node {
 public:
-    Contact contact;
-    Node* left;
-    Node* right;
+    Contact contact;      // The contact information stored in the node
+    Node* left;          // Pointer to the left child
+    Node* right;         // Pointer to the right child
 
+    // Constructor to initialize a Node with a given Contact
     Node(Contact contact) : contact(contact), left(nullptr), right(nullptr) {}
+
+    // Destructor to delete left and right children recursively
     ~Node() {
-        delete left;
-        delete right;
+        delete left;     // Recursively delete the left child
+        delete right;    // Recursively delete the right child
     }
 };
-
 // Binary Search Tree (BST) class to store contacts
 class BST {
 private:

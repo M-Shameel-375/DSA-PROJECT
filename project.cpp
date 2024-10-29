@@ -5,7 +5,6 @@
 #include <Windows.h>
 using namespace std;
 
-// Class for contact details
 class Contact {
 public:
     string name;

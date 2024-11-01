@@ -27,19 +27,18 @@ public:
 // Node class for Binary Search Tree (BST)
 class Node {
 public:
-    Contact contact;      // The contact information stored in the node
-    Node* left;          // Pointer to the left child
-    Node* right;         // Pointer to the right child
+    Contact contact;
+    Node* left;
+    Node* right;
 
-    // Constructor to initialize a Node with a given Contact
     Node(Contact contact) : contact(contact), left(nullptr), right(nullptr) {}
 
-    // Destructor to delete left and right children recursively
     ~Node() {
-        delete left;     // Recursively delete the left child
-        delete right;    // Recursively delete the right child
+        delete left;
+        delete right;
     }
 };
+
 // Binary Search Tree (BST) class to store contacts
 class BST {
 private:
@@ -55,9 +54,8 @@ private:
         } else if (contact.name > node->contact.name) {
             node->right = insert(node->right, contact);
         } else {
-            // Same name, compare number and email
             if (contact.number != node->contact.number || contact.email != node->contact.email) {
-                node->right = insert(node->right, contact);  // Insert with the same name but different info
+                node->right = insert(node->right, contact);
             } else {
                 cout << "\nContact already exists with the same name, number, and email.\n";
             }
@@ -68,7 +66,9 @@ private:
     Node* search(Node* node, const string& name, const string& number = "", const string& email = "") const {
         if (node == nullptr) return nullptr;
 
-        if (node->contact.name == name && (number.empty() || node->contact.number == number) && (email.empty() || node->contact.email == email)) {
+        if (node->contact.name == name && 
+            (number.empty() || node->contact.number == number) && 
+            (email.empty() || node->contact.email == email)) {
             return node;
         }
         if (name < node->contact.name) {
@@ -116,6 +116,15 @@ private:
         return current;
     }
 
+    void suggestContacts(Node* node, const string& prefix) const {
+        if (node == nullptr) return;
+        if (node->contact.name.substr(0, prefix.size()) == prefix) {
+            cout << node->contact.name << endl;
+        }
+        suggestContacts(node->left, prefix);
+        suggestContacts(node->right, prefix);
+    }
+
 public:
     BST() : root(nullptr) {}
 
@@ -142,6 +151,11 @@ public:
         } else {
             cout << "\nNo contact found with the name " << name << endl;
         }
+    }
+
+    void suggestContacts(const string& prefix) const {
+        cout << "\nSuggestions for \"" << prefix << "\":\n";
+        suggestContacts(root, prefix);
     }
 
     void deleteContact(const string& name) {
@@ -179,7 +193,7 @@ private:
             }
         }
         cout << "\nToo many failed attempts. Exiting program.\n";
-        return false;  // Exit if the user fails authentication 3 times
+        return false;
     }
 
     void changePassword() {
@@ -197,7 +211,7 @@ private:
     }
 
 public:
-    PhoneBookApp() : password("123") {}  // Default password
+    PhoneBookApp() : password("123") {}
 
     void startApp() {
         if (authenticate()) {
@@ -261,9 +275,11 @@ public:
 
     void searchContact() {
         string name;
-        cout << "\nEnter the name of the contact to search: ";
+        cout << "\nEnter the name of the contact to search (or partial name for suggestions): ";
         getline(cin, name);
-        bst.searchContact(name);
+
+        bst.suggestContacts(name);  // Display suggestions based on input
+        bst.searchContact(name);    // Exact search
     }
 
     void deleteContact() {
@@ -277,8 +293,8 @@ public:
         string name;
         cout << "\nEnter the name of the contact to edit: ";
         getline(cin, name);
-        bst.deleteContact(name);  // Delete existing contact
-        addContact();             // Add new contact with updated details
+        bst.deleteContact(name);
+        addContact();
     }
 
     void displayAllContacts() {

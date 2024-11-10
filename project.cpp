@@ -2,6 +2,7 @@
 #include <string>
 #include <iomanip>
 #include <algorithm>
+#include <fstream>
 #include <Windows.h>
 using namespace std;
 
@@ -12,15 +13,16 @@ public:
     string number;
     string email;
     string type;
-
+    bool isFavorite; 
     Contact(string name = "", string number = "", string email = "", string type = "") 
-        : name(name), number(number), email(email), type(type) {}
+        : name(name), number(number), email(email), type(type), isFavorite(false) {}
 
     friend ostream& operator<<(ostream& os, const Contact& contact) {
         os << "\nName: " << contact.name
            << "\nNumber: " << contact.number
            << "\nEmail: " << contact.email
-           << "\nType: " << contact.type << endl;
+           << "\nType: " << contact.type
+           << "\nFavorite: " << (contact.isFavorite ? "Yes" : "No") << endl;
         return os;
     }
 };
@@ -54,7 +56,6 @@ private:
         } else if (contact.name > node->contact.name) {
             node->right = insert(node->right, contact);
         } else {
-            // Same name, compare number and email
             if (contact.number != node->contact.number || contact.email != node->contact.email) {
                 node->right = insert(node->right, contact);  // Insert with the same name but different info
             } else {
@@ -64,16 +65,23 @@ private:
         return node;
     }
 
-    Node* search(Node* node, const string& name, const string& number = "", const string& email = "") const {
-        if (node == nullptr) return nullptr;
+    void displayFavorites(Node* node) const {
+        if (node == nullptr) return;
+        displayFavorites(node->left);
+        if (node->contact.isFavorite) {
+            cout << node->contact;
+        }
+        displayFavorites(node->right);
+    }
 
-        if (node->contact.name == name && (number.empty() || node->contact.number == number) && (email.empty() || node->contact.email == email)) {
+    Node* search(Node* node, const string& name) const {
+        if (node == nullptr || node->contact.name == name) {
             return node;
         }
         if (name < node->contact.name) {
-            return search(node->left, name, number, email);
+            return search(node->left, name);
         }
-        return search(node->right, name, number, email);
+        return search(node->right, name);
     }
 
     void inOrder(Node* node) const {
@@ -83,6 +91,25 @@ private:
         inOrder(node->right);
     }
 
+
+    Node* minValueNode(Node* node) const {
+        Node* current = node;
+        while (current && current->left != nullptr) {
+            current = current->left;
+        }
+        return current;
+    }
+    
+
+public:
+    BST() : root(nullptr) {}
+    ~BST() {
+        delete root;
+    }
+
+    bool isValidEmail(const string& email) const {
+        return email.size() > 10 && email.substr(email.size() - 10) == "@gmail.com";
+    }
     Node* deleteNode(Node* node, const string& name) {
         if (node == nullptr) return node;
 
@@ -107,46 +134,43 @@ private:
         return node;
     }
 
-    Node* minValueNode(Node* node) const {
-        Node* current = node;
-        while (current && current->left != nullptr) {
-            current = current->left;
-        }
-        return current;
-    }
-
-public:
-    BST() : root(nullptr) {}
-
-    ~BST() {
-        delete root;
-    }
-
-    bool isValidEmail(const string& email) const {
-        return email.size() > 10 && email.substr(email.size() - 10) == "@gmail.com";
-    }
-
     void insert(Contact contact) {
         root = insert(root, contact);
     }
 
-    bool contactExists(const string& name, const string& number, const string& email) const {
-        return search(root, name, number, email) != nullptr;
+    Node* searchContact(const string& name) const {
+        return search(root, name);
     }
+    void deleteContact(const string& name) {
+    root = deleteNode(root, name);
+}
 
-    void searchContact(const string& name) const {
-        Node* result = search(root, name);
-        if (result) {
-            cout << "\nContact found:\n" << result->contact;
+    void editContact(const string& name) {
+        Node* contactNode = searchContact(name);
+        if (contactNode) {
+            cout << "\nEditing contact details for " << name << ":\n";
+            cout << "Enter new number (or press enter to keep current): ";
+            string newNumber;
+            getline(cin, newNumber);
+            if (!newNumber.empty()) contactNode->contact.number = newNumber;
+
+            cout << "Enter new email (or press enter to keep current): ";
+            string newEmail;
+            getline(cin, newEmail);
+            if (!newEmail.empty() && isValidEmail(newEmail)) contactNode->contact.email = newEmail;
+
+            cout << "Enter new type (or press enter to keep current): ";
+            string newType;
+            getline(cin, newType);
+            if (!newType.empty()) contactNode->contact.type = newType;
+
+            cout << "\nContact updated successfully!\n";
         } else {
-            cout << "\nNo contact found with the name " << name << endl;
+            cout << "\nContact not found.\n";
         }
     }
 
-    void deleteContact(const string& name) {
-        root = deleteNode(root, name);
-        cout << "\nContact deleted (if it existed).\n";
-    }
+
 
     void displayAllContacts() const {
         if (root == nullptr) {
@@ -156,7 +180,7 @@ public:
             inOrder(root);
         }
     }
-};
+
 
 // Application class that manages user interaction
 class PhoneBookApp {
@@ -178,7 +202,7 @@ private:
             }
         }
         cout << "\nToo many failed attempts. Exiting program.\n";
-        return false;  // Exit if the user fails authentication 3 times
+        return false;
     }
 
     void changePassword() {
@@ -218,13 +242,34 @@ public:
                     deleteContact();
                 } else if (choice == "5") {
                     system("cls");
-                    displayAllContacts();
+                    manageFavorites();
                 } else if (choice == "6") {
+                    system("cls");
+                    displayAllContacts();
+                } else if (choice == "7") {
                     system("cls");
                     changePassword();
                 }
             } while (choice != "0");
         }
+    }
+
+    void manageFavorites() {
+        string choice;
+        do {
+            favoriteMenu();
+            getline(cin, choice);
+
+        } while (choice != "0");
+    }
+
+    void favoriteMenu() {
+        cout << "\n--- Favorite Contacts Menu ---";
+        cout << "\n1. Add to Favorite";
+        cout << "\n2. Remove from Favorite";
+        cout << "\n3. Display Favorite Contacts";
+        cout << "\n0. Exit";
+        cout << "\nSelect an option: ";
     }
 
     void addContact() {
@@ -249,51 +294,54 @@ public:
         cout << "Enter type (PTCL, Local, Emergency): ";
         getline(cin, type);
 
-        if (bst.contactExists(name, number, email)) {
-            cout << "\nA contact with the same name, number, and email already exists.\n";
-        } else {
-            Contact newContact(name, number, email, type);
-            bst.insert(newContact);
-            cout << "\nContact added successfully!\n";
-        }
+        Contact newContact(name, number, email, type);
+        bst.insert(newContact);
+        cout << "\nContact added successfully!\n";
     }
 
-    void searchContact() {
-        string name;
-        cout << "\nEnter the name of the contact to search: ";
-        getline(cin, name);
-        bst.searchContact(name);
-    }
 
     void deleteContact() {
         string name;
         cout << "\nEnter the name of the contact to delete: ";
         getline(cin, name);
-        bst.deleteContact(name);
+        bst.deleteNode(bst.searchContact(name), name);
+        cout << "\nContact deleted (if it existed).\n";
     }
 
     void editContact() {
         string name;
         cout << "\nEnter the name of the contact to edit: ";
         getline(cin, name);
-        bst.deleteContact(name);  // Delete existing contact
-        addContact();             // Add new contact with updated details
+        bst.editContact(name);
+    }
+
+    void searchContact() {
+        string name;
+        cout << "\nEnter the name of the contact to search: ";
+        getline(cin, name);
+        Node* result = bst.searchContact(name);
+        if (result) {
+            cout << "\nContact found:\n" << result->contact;
+        } else {
+            cout << "\nNo contact found with the name " << name << endl;
+        }
     }
 
     void displayAllContacts() {
         bst.displayAllContacts();
     }
 
-    void displayMenu() const {
-        cout << "\n\n\t__________ Phone Book Menu __________\n";
-        cout << "\t1. Add Contact\n";
-        cout << "\t2. Edit Contact\n";
-        cout << "\t3. Search Contact\n";
-        cout << "\t4. Delete Contact\n";
-        cout << "\t5. Display All Contacts\n";
-        cout << "\t6. Change Password\n";
-        cout << "\t0. Exit\n";
-        cout << "\tEnter your choice: ";
+    void displayMenu() {
+        cout << "\n--- Phone Book Management System ---";
+        cout << "\n1. Add Contact";
+        cout << "\n2. Edit Contact";
+        cout << "\n3. Search Contact";
+        cout << "\n4. Delete Contact";
+        cout << "\n5. Manage Favorite Contacts";
+        cout << "\n6. Display All Contacts";
+        cout << "\n7. Change Password";
+        cout << "\n0. Exit";
+        cout << "\nSelect an option: ";
     }
 };
 

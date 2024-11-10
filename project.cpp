@@ -65,7 +65,14 @@ private:
         return node;
     }
 
-
+    void displayFavorites(Node* node) const {
+        if (node == nullptr) return;
+        displayFavorites(node->left);
+        if (node->contact.isFavorite) {
+            cout << node->contact;
+        }
+        displayFavorites(node->right);
+    }
 
     Node* search(Node* node, const string& name) const {
         if (node == nullptr || node->contact.name == name) {
@@ -192,6 +199,16 @@ public:
         }
     }
 
+    void displayFavoriteContacts() const {
+        if (root == nullptr) {
+            cout << "\nNo contacts available.\n";
+        } else {
+            cout << "\nDisplaying favorite contacts:\n";
+            displayFavorites(root);
+        }
+    }
+};
+
 // Application class that manages user interaction
 class PhoneBookApp {
 private:
@@ -277,7 +294,7 @@ public:
                 removeFromFavorite();
             } else if (choice == "3") {
                 system("cls");
-                // displayFavoriteContacts();
+                displayFavoriteContacts();
             }
         } while (choice != "0");
     }
@@ -330,6 +347,10 @@ public:
         cout << "\nEnter the name of the contact to remove from favorites: ";
         getline(cin, name);
         bst.removeFromFavorite(name);
+    }
+
+    void displayFavoriteContacts() {
+        bst.displayFavoriteContacts();
     }
 
     void deleteContact() {

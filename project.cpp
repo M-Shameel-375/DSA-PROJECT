@@ -65,14 +65,6 @@ private:
         return node;
     }
 
-    void displayFavorites(Node* node) const {
-        if (node == nullptr) return;
-        displayFavorites(node->left);
-        if (node->contact.isFavorite) {
-            cout << node->contact;
-        }
-        displayFavorites(node->right);
-    }
 
     Node* search(Node* node, const string& name) const {
         if (node == nullptr || node->contact.name == name) {
@@ -169,7 +161,15 @@ public:
             cout << "\nContact not found.\n";
         }
     }
-
+    void markAsFavorite(const string& name) {
+        Node* contactNode = searchContact(name);
+        if (contactNode) {
+            contactNode->contact.isFavorite = true;
+            cout << "\n" << name << " has been added to favorites.\n";
+        } else {
+            cout << "\nContact not found.\n";
+        }
+    }
 
 
     void displayAllContacts() const {
@@ -259,7 +259,16 @@ public:
         do {
             favoriteMenu();
             getline(cin, choice);
-
+            if (choice == "1") {
+                system("cls");
+                markAsFavorite();
+            } else if (choice == "2") {
+                system("cls");
+                // removeFromFavorite();
+            } else if (choice == "3") {
+                system("cls");
+                // displayFavoriteContacts();
+            }
         } while (choice != "0");
     }
 
@@ -307,6 +316,12 @@ public:
         bst.deleteNode(bst.searchContact(name), name);
         cout << "\nContact deleted (if it existed).\n";
     }
+        void markAsFavorite() {
+        string name;
+        cout << "\nEnter the name of the contact to mark as favorite: ";
+        getline(cin, name);
+        bst.markAsFavorite(name);
+    }
 
     void editContact() {
         string name;
@@ -345,7 +360,8 @@ public:
     }
 };
 
-int main() {
+int main() 
+{
     PhoneBookApp app;
     app.startApp();
     return 0;

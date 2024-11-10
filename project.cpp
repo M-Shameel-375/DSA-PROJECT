@@ -66,6 +66,7 @@ private:
     }
 
 
+
     Node* search(Node* node, const string& name) const {
         if (node == nullptr || node->contact.name == name) {
             return node;
@@ -161,6 +162,7 @@ public:
             cout << "\nContact not found.\n";
         }
     }
+
     void markAsFavorite(const string& name) {
         Node* contactNode = searchContact(name);
         if (contactNode) {
@@ -171,6 +173,15 @@ public:
         }
     }
 
+    void removeFromFavorite(const string& name) {
+        Node* contactNode = searchContact(name);
+        if (contactNode && contactNode->contact.isFavorite) {
+            contactNode->contact.isFavorite = false;
+            cout << "\n" << name << " has been removed from favorites.\n";
+        } else {
+            cout << "\nContact not found or is not a favorite.\n";
+        }
+    }
 
     void displayAllContacts() const {
         if (root == nullptr) {
@@ -180,7 +191,6 @@ public:
             inOrder(root);
         }
     }
-
 
 // Application class that manages user interaction
 class PhoneBookApp {
@@ -264,7 +274,7 @@ public:
                 markAsFavorite();
             } else if (choice == "2") {
                 system("cls");
-                // removeFromFavorite();
+                removeFromFavorite();
             } else if (choice == "3") {
                 system("cls");
                 // displayFavoriteContacts();
@@ -308,6 +318,19 @@ public:
         cout << "\nContact added successfully!\n";
     }
 
+    void markAsFavorite() {
+        string name;
+        cout << "\nEnter the name of the contact to mark as favorite: ";
+        getline(cin, name);
+        bst.markAsFavorite(name);
+    }
+
+    void removeFromFavorite() {
+        string name;
+        cout << "\nEnter the name of the contact to remove from favorites: ";
+        getline(cin, name);
+        bst.removeFromFavorite(name);
+    }
 
     void deleteContact() {
         string name;
@@ -315,12 +338,6 @@ public:
         getline(cin, name);
         bst.deleteNode(bst.searchContact(name), name);
         cout << "\nContact deleted (if it existed).\n";
-    }
-        void markAsFavorite() {
-        string name;
-        cout << "\nEnter the name of the contact to mark as favorite: ";
-        getline(cin, name);
-        bst.markAsFavorite(name);
     }
 
     void editContact() {
@@ -360,8 +377,7 @@ public:
     }
 };
 
-int main() 
-{
+int main() {
     PhoneBookApp app;
     app.startApp();
     return 0;

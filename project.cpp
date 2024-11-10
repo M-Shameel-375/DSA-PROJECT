@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <fstream>
 #include <Windows.h>
+#include <vector>
 using namespace std;
 
 // Class for contact details
@@ -46,6 +47,7 @@ public:
 };
 
 // Binary Search Tree (BST) class to store contacts
+
 class BST
 
 {
@@ -81,6 +83,16 @@ private:
         return node;
     }
 
+    Node *minValueNode(Node *node) const
+    {
+        Node *current = node;
+        while (current && current->left != nullptr)
+        {
+            current = current->left;
+        }
+        return current;
+    }
+
     void displayFavorites(Node *node) const
     {
         if (node == nullptr)
@@ -113,16 +125,6 @@ private:
         inOrder(node->left);
         cout << node->contact;
         inOrder(node->right);
-    }
-
-    Node *minValueNode(Node *node) const
-    {
-        Node *current = node;
-        while (current && current->left != nullptr)
-        {
-            current = current->left;
-        }
-        return current;
     }
 
 public:
@@ -174,14 +176,26 @@ public:
     {
         root = insert(root, contact);
     }
+    void deleteMultipleContacts(const vector<string> &names)
+    {
+        for (const auto &name : names)
+        {
+            root = deleteNode(root, name);
+        }
+        cout << "\nSpecified contacts have been deleted.\n";
+    }
+
+    // Function to delete all contacts
+    void deleteAllContacts()
+    {
+        delete root;
+        root = nullptr;
+        cout << "\nAll contacts have been deleted.\n";
+    }
 
     Node *searchContact(const string &name) const
     {
         return search(root, name);
-    }
-    void deleteContact(const string &name)
-    {
-        root = deleteNode(root, name);
     }
 
     void editContact(const string &name)
@@ -272,7 +286,6 @@ public:
         }
     }
 };
-
 // Application class that manages user interaction
 class PhoneBookApp
 {
@@ -373,7 +386,7 @@ public:
             else if (choice == "2")
             {
                 system("cls");
-                backupContacts();
+                // backupContacts();
             }
             else if (choice == "3")
             {
@@ -409,7 +422,7 @@ public:
                 else if (choice == "4")
                 {
                     system("cls");
-                    deleteContact();
+                    batchDelete();
                 }
                 else if (choice == "5")
                 {
@@ -429,7 +442,41 @@ public:
             } while (choice != "0");
         }
     }
+    void batchDelete()
+    {
+        cout << "\n--- Batch Delete Menu ---";
+        cout << "\n1. Delete multiple contacts by name";
+        cout << "\n2. Delete all contacts";
+        cout << "\nSelect an option: ";
 
+        string choice;
+        getline(cin, choice);
+
+        if (choice == "1")
+        {
+            // Delete multiple contacts by name
+            vector<string> names;
+            string name;
+            cout << "\nEnter names to delete (type 'done' to finish):\n";
+            while (true)
+            {
+                getline(std::cin, name);
+                if (name == "done")
+                    break;
+                names.push_back(name);
+            }
+            bst.deleteMultipleContacts(names);
+        }
+        else if (choice == "2")
+        {
+            // Delete all contacts
+            bst.deleteAllContacts();
+        }
+        else
+        {
+            cout << "\nInvalid choice. Returning to main menu.\n";
+        }
+    }
     void manageFavorites()
     {
         string choice;
@@ -516,15 +563,6 @@ public:
     void displayFavoriteContacts()
     {
         bst.displayFavoriteContacts();
-    }
-
-    void deleteContact()
-    {
-        string name;
-        cout << "\nEnter the name of the contact to delete: ";
-        getline(cin, name);
-        bst.deleteNode(bst.searchContact(name), name);
-        cout << "\nContact deleted (if it existed).\n";
     }
 
     void editContact()

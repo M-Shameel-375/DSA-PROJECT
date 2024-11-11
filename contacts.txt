@@ -1,5 +1,30 @@
-Name,Number,Email,Type,Favorite
-Ali,123,ahmed@gmail.com,2,No
-Anees,123,Ali@gmail.com,1,No
-Anees,123,Aneees@gmail.com,1,No
-hamza,890,hamid@gmail.com,1,No
+Name: Ali
+Number: 4444
+Email: ahmed@gmail.com
+Type: local
+Favorite: No
+
+Name: Anees
+Number: 123
+Email: Ali@gmail.com
+Type: 1
+Favorite: No
+
+Name: Anees
+Number: 123
+Email: Aneees@gmail.com
+Type: 1
+Favorite: No
+
+Name: hamza
+Number: 890
+Email: hamid@gmail.com
+Type: 1
+Favorite: No
+
+Name: shameel
+Number: 31545
+Email: shameel@gmail.com
+Type: local
+Favorite: No
+

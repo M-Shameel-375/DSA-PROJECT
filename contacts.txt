@@ -1,7 +1,5 @@
-
-Name: shameel
-Number: 234
-Email: shameel@gmail.com
-Type: local
-Favorite: No
-
+Name,Number,Email,Type,Favorite
+Ali,123,ahmed@gmail.com,2,No
+Anees,123,Ali@gmail.com,1,No
+Anees,123,Aneees@gmail.com,1,No
+hamza,890,hamid@gmail.com,1,No

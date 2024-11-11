@@ -118,13 +118,18 @@ private:
         return search(node->right, name);
     }
 
-    void inOrder(Node *node) const
+    // Updated inOrder function to handle file output
+    void inOrder(Node *node, ostream &os) const
     {
-        if (node == nullptr)
+        if (!node)
             return;
-        inOrder(node->left);
-        cout << node->contact;
-        inOrder(node->right);
+        inOrder(node->left, os);
+        os << node->contact.name << ","
+           << node->contact.number << ","
+           << node->contact.email << ","
+           << node->contact.type << ","
+           << (node->contact.isFavorite ? "Yes" : "No") << "\n";
+        inOrder(node->right, os);
     }
 
 public:
@@ -176,6 +181,59 @@ public:
     {
         root = insert(root, contact);
     }
+    void saveToFile(const string &filename) const
+    {
+        ofstream file(filename);
+        if (file.is_open())
+        {
+            // Adding header row for CSV file
+            file << "Name,Number,Email,Type,Favorite\n";
+            inOrder(root, file); // Call inOrder with file output stream
+            file.close();
+            cout << "\nContacts saved successfully to " << filename << "\n";
+        }
+        else
+        {
+            cout << "\nFailed to open file for saving.\n";
+        }
+    }
+
+    void loadFromFile(const string &filename)
+    {
+        try
+        {
+            ifstream file(filename);
+            string line, name, number, email, type, favorite;
+
+            if (file.is_open())
+            {
+                getline(file, line); // Skip header
+                while (getline(file, line))
+                {
+                    stringstream ss(line);
+                    getline(ss, name, ',');
+                    getline(ss, number, ',');
+                    getline(ss, email, ',');
+                    getline(ss, type, ',');
+                    getline(ss, favorite, ',');
+                    Contact contact(name, number, email, type);
+                    contact.isFavorite = (favorite == "Yes");
+                    insert(contact);
+                }
+                file.close();
+                cout << "\nContacts loaded successfully from " << filename << "\n";
+            }
+            else
+            {
+                throw runtime_error("Failed to open file for loading.");
+            }
+        }
+        catch (const runtime_error &e)
+        {
+            cout << "\nError: " << e.what() << "\n";
+        }
+    }
+
     void deleteMultipleContacts(const vector<string> &names)
     {
         for (const auto &name : names)
@@ -269,7 +327,7 @@ public:
         else
         {
             cout << "\nDisplaying all contacts:\n";
-            inOrder(root);
+            inOrder(root, cout); // Use cout to display to console
         }
     }
 
@@ -315,6 +373,17 @@ private:
     // Backup contacts feature
     void backupContacts()
     {
+        // Backup contacts with a timestamped filename
+        time_t now = time(0);
+        tm *ltm = localtime(&now);
+        stringstream backupFileName;
+        backupFileName << "contacts_backup_"
+                       << 1900 + ltm->tm_year
+                       << 1 + ltm->tm_mon
+                       << ltm->tm_mday << ".txt";
+
+        bst.saveToFile(backupFileName.str());
+        cout << "\nContacts backed up to " << backupFileName.str() << "\n";
     }
 
     // Restore password feature
@@ -366,7 +435,7 @@ public:
     {
         if (!authenticate())
             return; // Exit if authentication fails
-
+        bst.loadFromFile("contacts.txt");
         string choice;
         do
         {
@@ -542,6 +611,7 @@ public:
         Contact newContact(name, number, email, type);
         bst.insert(newContact);
         cout << "\nContact added successfully!\n";
+        bst.saveToFile("contacts.txt");
     }
 
     void markAsFavorite()

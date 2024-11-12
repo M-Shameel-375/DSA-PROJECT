@@ -7,6 +7,79 @@
 #include <vector>
 using namespace std;
 
+// Error Handling Class
+class Validations // c;ass for input validations
+{
+public:
+    // Name validation function
+    bool nameValidation(string str)
+    {
+        if (str.empty())
+        {
+            return false;
+        }
+        return true;
+    }
+
+    // Menu choice validation (to ensure input is numeric)
+    bool menuChoice(string choice)
+    {
+        for (int i = 0; i < choice.size(); ++i)
+        {
+            if (!isdigit(choice[i]))
+            {
+                return false;
+            }
+        }
+        if (choice.empty())
+        {
+            return false;
+        }
+        for (int i = 0; i < choice.size(); ++i)
+        {
+            if (choice[i] == ' ')
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    bool stringValidation(string str)
+    {
+        if (str.empty())
+        {
+            return false;
+        }
+
+        bool containSpacesOnly = false;
+        for (int i = 0; i < str.size(); ++i)
+        {
+            if (str[i] != ' ')
+            {
+                containSpacesOnly = true;
+                break;
+            }
+        }
+
+        if (!containSpacesOnly)
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+    bool phoneValidation(string input)
+    {
+        if (input.empty())
+        {
+            return false;
+        }
+        return true;
+    }
+};
+
 // Class for contact details
 class Contact
 {
@@ -119,18 +192,18 @@ private:
     }
 
     // Updated inOrder function to handle file output
-void inOrder(Node* node, ostream& os) const {
-    if (!node)
-        return;
-    inOrder(node->left, os);
-    os << "Name: " << node->contact.name << "\n"
-       << "Number: " << node->contact.number << "\n"
-       << "Email: " << node->contact.email << "\n"
-       << "Type: " << node->contact.type << "\n"
-       << "Favorite: " << (node->contact.isFavorite ? "Yes" : "No") << "\n\n";
-    inOrder(node->right, os);
-}
-
+    void inOrder(Node *node, ostream &os) const
+    {
+        if (!node)
+            return;
+        inOrder(node->left, os);
+        os << "Name: " << node->contact.name << "\n"
+           << "Number: " << node->contact.number << "\n"
+           << "Email: " << node->contact.email << "\n"
+           << "Type: " << node->contact.type << "\n"
+           << "Favorite: " << (node->contact.isFavorite ? "Yes" : "No") << "\n\n";
+        inOrder(node->right, os);
+    }
 
 public:
     BST() : root(nullptr) {}
@@ -181,17 +254,20 @@ public:
     {
         root = insert(root, contact);
     }
-void saveToFile(const string& filename) const {
-    ofstream file(filename);
-    if (file.is_open()) {
-        inOrder(root, file); // Call inOrder with file output stream
-        file.close();
-        cout << "\nContacts saved successfully to " << filename << "\n";
-    } else {
-        cout << "\nFailed to open file for saving.\n";
+    void saveToFile(const string &filename) const
+    {
+        ofstream file(filename);
+        if (file.is_open())
+        {
+            inOrder(root, file); // Call inOrder with file output stream
+            file.close();
+            cout << "\nContacts saved successfully to " << filename << "\n";
+        }
+        else
+        {
+            cout << "\nFailed to open file for saving.\n";
+        }
     }
-}
-
 
     void loadFromFile(const string &filename)
     {
@@ -338,7 +414,7 @@ void saveToFile(const string& filename) const {
     }
 };
 // Application class that manages user interaction
-class PhoneBookApp
+class PhoneBookApp : public Validations
 {
 private:
     BST bst;
@@ -347,8 +423,19 @@ private:
 
     void changePassword()
     {
-        cout << "\nEnter new password: ";
-        getline(cin, password);
+        while (true)
+        {
+            cout << "\nEnter new password: ";
+            getline(cin, password);
+            if (stringValidation(password)) // Validate the username
+            {
+                break; // Exit loop if username is valid
+            }
+            else
+            {
+                cout << "\n\t Invalid Password Patteren" << endl;
+            }
+        }
         cout << "\nPassword changed successfully!\n";
     }
 
@@ -356,8 +443,19 @@ private:
     {
         string answer;
         cout << "\nTo restore your password, answer the security question.";
-        cout << "\nWhat is your favorite color? ";
-        getline(cin, answer);
+        while (true)
+        {
+            cout << "\nWhat is your favorite color? ";
+            getline(cin, answer);
+            if (stringValidation(answer)) // Validate the username
+            {
+                break; // Exit loop if username is valid
+            }
+            else
+            {
+                cout << "\nInvalid Answer. please try again\n";
+            }
+        }
         if (answer == securityAnswer)
         {
             cout << "\nYour password is: " << password << endl;
@@ -407,7 +505,16 @@ public:
             cout << "\n3. Restore Password";
             cout << "\n0. Return to Main Menu";
             cout << "\nSelect an option: ";
-            getline(cin, choice);
+            while (true)
+            {
+                cout << "\nSelect an option: ";
+                getline(cin, choice);
+                if (menuChoice(choice))
+                {
+                    break;
+                }
+                cout << "\n\tInvalid option! Please try again.\n\n";
+            }
 
             if (choice == "1")
             {
@@ -440,7 +547,16 @@ public:
         do
         {
             displayMenu();
-            getline(cin, choice);
+            while (true)
+            {
+                cout << "\nSelect an option: ";
+                getline(cin, choice);
+                if (menuChoice(choice))
+                {
+                    break;
+                }
+                cout << "\n\tInvalid option! Please try again.\n\n";
+            }
             if (choice == "1")
             {
                 system("cls");
@@ -484,10 +600,17 @@ public:
         cout << "\n--- Batch Delete Menu ---";
         cout << "\n1. Delete multiple contacts by name";
         cout << "\n2. Delete all contacts";
-        cout << "\nSelect an option: ";
-
         string choice;
-        getline(cin, choice);
+        while (true)
+        {
+            cout << "\nSelect an option: ";
+            getline(cin, choice);
+            if (menuChoice(choice))
+            {
+                break;
+            }
+            cout << "\n\tInvalid option! Please try again.\n\n";
+        }
 
         if (choice == "1")
         {
@@ -519,12 +642,33 @@ public:
     {
         string name, number, email, type;
 
-        cout << "\nEnter name: ";
-        getline(cin, name);
+        while (true)
+        {
+            cout << "\nEnter the Name ";
+            getline(cin, name);
+            if (nameValidation(name)) // Validate the username
+            {
+                break; // Exit loop if username is valid
+            }
+            else
+            {
+                cout << "\n\n\tInvalid Name. Please try again.\n";
+            }
+        }
 
-        cout << "Enter number: ";
-        getline(cin, number);
-
+        while (true)
+        {
+            cout << "Enter number: ";
+            getline(cin, number);
+            if (phoneValidation(number))
+            {
+                break;
+            }
+            else
+            {
+                cout << "\n\n\tInvalid Number. Please try again.\n";
+            }
+        }
         while (true)
         {
             cout << "Enter email (must end with '@gmail.com'): ";
@@ -539,8 +683,19 @@ public:
             }
         }
 
-        cout << "Enter type (PTCL, Local, Emergency): ";
-        getline(cin, type);
+        while (true)
+        {
+            cout << "Enter type (PTCL, Local, Emergency): ";
+            getline(cin, type);
+            if (nameValidation(type)) // Validate the username
+            {
+                break; // Exit loop if username is valid
+            }
+            else
+            {
+                cout << "\n\n\tInvalid Type. Please try again.\n";
+            }
+        }
 
         Contact newContact(name, number, email, type);
         bst.insert(newContact);
@@ -551,8 +706,19 @@ public:
     void markAsFavorite()
     {
         string name;
-        cout << "\nEnter the name of the contact to mark as favorite: ";
-        getline(cin, name);
+        while (true)
+        {
+            cout << "\nEnter the name of the contact to mark as favorite: ";
+            getline(cin, name);
+            if (nameValidation(name)) // Validate the username
+            {
+                break; // Exit loop if username is valid
+            }
+            else
+            {
+                cout << "\n\n\tInvalid Name. Please try again.\n";
+            }
+        }
         bst.markAsFavorite(name);
         bst.saveToFile("contacts.txt"); // Save after marking as favorite
     }
@@ -560,8 +726,19 @@ public:
     void removeFromFavorite()
     {
         string name;
-        cout << "\nEnter the name of the contact to remove from favorites: ";
-        getline(cin, name);
+        while (true)
+        {
+            cout << "\nEnter the name of the contact to remove from favorites: ";
+            getline(cin, name);
+            if (nameValidation(name)) // Validate the username
+            {
+                break; // Exit loop if username is valid
+            }
+            else
+            {
+                cout << "\n\n\tInvalid Name. Please try again.\n";
+            }
+        }
         bst.removeFromFavorite(name);
         bst.saveToFile("contacts.txt"); // Save after removing from favorite
     }
@@ -574,8 +751,19 @@ public:
     void editContact()
     {
         string name;
-        cout << "\nEnter the name of the contact to edit: ";
-        getline(cin, name);
+        while (true)
+        {
+            cout << "\nEnter the name of the contact to edit: ";
+            getline(cin, name);
+            if (nameValidation(name)) // Validate the username
+            {
+                break; // Exit loop if username is valid
+            }
+            else
+            {
+                cout << "\n\n\tInvalid Name. Please try again.\n";
+            }
+        }
         bst.editContact(name);
         bst.saveToFile("contacts.txt"); // Save after editing contact
     }
@@ -583,8 +771,19 @@ public:
     void searchContact()
     {
         string name;
-        cout << "\nEnter the name of the contact to search: ";
-        getline(cin, name);
+        while (true)
+        {
+            cout << "\nEnter the name of the contact to search: ";
+            getline(cin, name);
+            if (nameValidation(name)) // Validate the username
+            {
+                break; // Exit loop if username is valid
+            }
+            else
+            {
+                cout << "\n\n\tInvalid Name. Please try again.\n";
+            }
+        }
         Node *result = bst.searchContact(name);
         if (result)
         {
@@ -608,7 +807,16 @@ public:
         do
         {
             favoriteMenu();
-            getline(cin, choice);
+            while (true)
+            {
+                cout << "\nSelect an option: ";
+                getline(cin, choice);
+                if (menuChoice(choice))
+                {
+                    break;
+                }
+                cout << "\n\tInvalid option! Please try again.\n\n";
+            }
             if (choice == "1")
             {
                 system("cls");
@@ -634,7 +842,6 @@ public:
         cout << "\n2. Remove from Favorite";
         cout << "\n3. Display Favorite Contacts";
         cout << "\n0. Exit";
-        cout << "\nSelect an option: ";
     }
 
     void displayMenu()
@@ -648,7 +855,6 @@ public:
         cout << "\n6. Display All Contacts";
         cout << "\n7. Settings";
         cout << "\n0. Exit";
-        cout << "\nSelect an option: ";
     }
 };
 

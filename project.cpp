@@ -6,39 +6,35 @@
 #include <Windows.h>
 #include <vector>
 #include <conio.h>
+#include <regex>
 using namespace std;
 
 // Error Handling Class
-class Validations // c;ass for input validations
+class Validations // class for input validations
 {
 public:
     // Name validation function
-    bool nameValidation(string str)
+    bool nameValidation(const string &str)
     {
         if (str.empty())
         {
             return false;
         }
-        return true;
+
+        return !regex_match(str, regex(".*\\d.*")); // Ensure no digits in name
     }
 
     // Menu choice validation (to ensure input is numeric)
-    bool menuChoice(string choice)
+    bool menuChoice(const string &choice)
     {
-        for (int i = 0; i < choice.size(); ++i)
-        {
-            if (!isdigit(choice[i]))
-            {
-                return false;
-            }
-        }
-        if (choice.empty())
+        if (choice.empty() || choice.find(' ') != string::npos)
         {
             return false;
         }
-        for (int i = 0; i < choice.size(); ++i)
+
+        for (char ch : choice)
         {
-            if (choice[i] == ' ')
+            if (!isdigit(ch))
             {
                 return false;
             }
@@ -46,41 +42,45 @@ public:
         return true;
     }
 
-    bool stringValidation(string str)
+    // String validation to check if not empty and not only spaces
+    bool stringValidation(const string &str)
     {
         if (str.empty())
         {
             return false;
         }
 
-        bool containSpacesOnly = false;
-        for (int i = 0; i < str.size(); ++i)
+        for (char ch : str)
         {
-            if (str[i] != ' ')
+            if (!isspace(ch))
             {
-                containSpacesOnly = true;
-                break;
+                return true;
             }
         }
 
-        if (!containSpacesOnly)
-        {
-            return false;
-        }
-
-        return true;
+        return false;
     }
 
-    bool phoneValidation(string input)
+    // Phone validation to ensure correct format (example for 11-digit phone numbers)
+    bool phoneValidation(const string &input)
     {
-        if (input.empty())
+        if (input.length() != 11)
         {
             return false;
+        }
+
+        for (char ch : input)
+        {
+            if (!isdigit(ch))
+            {
+                return false;
+            }
         }
         return true;
     }
 
-    void passLogic(string &password, string promptText)
+    // Function for password logic with masking and reveal option
+    void passLogic(string &password, const string &promptText)
     {
         char pass[32] = {0};
         char ch;
@@ -92,9 +92,9 @@ public:
 
         while (!enter)
         {
-            ch = getch();
+            ch = _getch();
 
-            if ((ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z') || (ch >= '0' && ch <= '9'))
+            if (isalnum(ch))
             {
                 pass[i] = ch;
                 if (show)
@@ -108,18 +108,18 @@ public:
                 i++;
             }
 
-            if (ch == '\b' && i >= 1)
+            if (ch == '\b' && i >= 1) // Handle backspace
             {
                 cout << "\b \b";
                 i--;
             }
 
-            if (ch == '\r')
+            if (ch == '\r') // Enter key
             {
                 enter = true;
             }
 
-            if (ch == '\t')
+            if (ch == '\t') // Toggle show/hide password
             {
                 show = !show;
                 cout << "\r" << promptText;
@@ -133,7 +133,6 @@ public:
         pass[i] = '\0';
         password = pass;
     }
-
 };
 
 // Class for contact details

@@ -5,6 +5,7 @@
 #include <fstream>
 #include <Windows.h>
 #include <vector>
+#include <conio.h>
 using namespace std;
 
 // Error Handling Class
@@ -78,6 +79,61 @@ public:
         }
         return true;
     }
+
+    void passLogic(string &password, string promptText)
+    {
+        char pass[32] = {0};
+        char ch;
+        bool enter = false;
+        int i = 0;
+        bool show = false;
+
+        cout << promptText;
+
+        while (!enter)
+        {
+            ch = getch();
+
+            if ((ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z') || (ch >= '0' && ch <= '9'))
+            {
+                pass[i] = ch;
+                if (show)
+                {
+                    cout << ch;
+                }
+                else
+                {
+                    cout << "*";
+                }
+                i++;
+            }
+
+            if (ch == '\b' && i >= 1)
+            {
+                cout << "\b \b";
+                i--;
+            }
+
+            if (ch == '\r')
+            {
+                enter = true;
+            }
+
+            if (ch == '\t')
+            {
+                show = !show;
+                cout << "\r" << promptText;
+                for (int j = 0; j < i; j++)
+                {
+                    cout << (show ? pass[j] : '*');
+                }
+            }
+        }
+
+        pass[i] = '\0';
+        password = pass;
+    }
+
 };
 
 // Class for contact details
@@ -472,8 +528,9 @@ private:
         string inputPassword;
         while (attempts < 3)
         {
-            cout << "\nEnter password: ";
-            getline(cin, inputPassword);
+            //cout << "\nEnter password: ";
+            passLogic(inputPassword, "Enter password: ");
+            // getline(cin, inputPassword);
             if (inputPassword == password)
             {
                 return true;

@@ -272,10 +272,12 @@ public:
         delete root;
     }
 
-    bool isValidEmail(const string &email) const
-    {
-        return email.size() > 10 && email.substr(email.size() - 10) == "@gmail.com";
-    }
+bool isValidEmail(const string &email) const
+{
+    regex emailPattern(R"((\w+)(\.?)(\w*)@gmail\.com)");
+    return regex_match(email, emailPattern);
+}
+
     Node *deleteNode(Node *node, const string &name)
     {
         if (node == nullptr)

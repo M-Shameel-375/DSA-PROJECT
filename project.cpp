@@ -1,5 +1,6 @@
 #include <iostream>
 #include <string>
+#include <sstream>
 #include <iomanip>
 #include <algorithm>
 #include <fstream>
@@ -246,19 +247,26 @@ private:
         return search(node->right, name);
     }
 
-    // Updated inOrder function to handle file output
-    void inOrder(Node *node, ostream &os) const
-    {
-        if (!node)
-            return;
-        inOrder(node->left, os);
-        os << "Name: " << node->contact.name << "\n"
-           << "Number: " << node->contact.number << "\n"
-           << "Email: " << node->contact.email << "\n"
-           << "Type: " << node->contact.type << "\n"
-           << "Favorite: " << (node->contact.isFavorite ? "Yes" : "No") << "\n\n";
-        inOrder(node->right, os);
-    }
+
+
+void inOrder(Node *node, ostream &os) const
+{
+    if (!node)
+        return;
+
+    inOrder(node->left, os);
+
+    // Writing each contact in one line with space-separated values
+    os << node->contact.name << " "
+       << node->contact.number << " "
+       << node->contact.email << " "
+       << node->contact.type << " "
+       << (node->contact.isFavorite ? "Yes" : "No") << "\n";
+
+    inOrder(node->right, os);
+}
+
+
 
 public:
     BST() : root(nullptr) {}
@@ -309,55 +317,59 @@ public:
     {
         root = insert(root, contact);
     }
-    void saveToFile(const string &filename) const
+void loadFromFile(const string &filename)
+{
+    ifstream file(filename);
+    if (!file.is_open())
     {
-        ofstream file(filename);
-        if (file.is_open())
-        {
-            inOrder(root, file); // Call inOrder with file output stream
-            file.close();
-            cout << "\nContacts saved successfully to " << filename << "\n";
-        }
-        else
-        {
-            cout << "\nFailed to open file for saving.\n";
-        }
+        cout << "\nFailed to open file for loading.\n";
+        return;
     }
 
-    void loadFromFile(const string &filename)
+    // Clear the current BST to avoid duplication if reloaded
+    delete root;
+    root = nullptr;
+
+    string line, name, number, email, type, favorite;
+    int contactCount = 0; // Track the number of contacts loaded
+
+    while (getline(file, line))
     {
-        ifstream file(filename);
-        if (!file.is_open())
+        stringstream ss(line);
+        getline(ss, name, ' ');
+        getline(ss, number, ' ');
+        getline(ss, email, ' ');
+        getline(ss, type, ' ');
+        getline(ss, favorite, ' ');
+
+        if (!name.empty() && !number.empty() && !email.empty() && !type.empty())
         {
-            cout << "\nFailed to open file for loading.\n";
-            return;
-        }
-
-        // Clear the current BST to avoid duplication if reloaded
-        delete root;
-        root = nullptr;
-
-        string line, name, number, email, type, favorite;
-        getline(file, line); // Skip header line
-
-        while (getline(file, line))
-        {
-            stringstream ss(line);
-            getline(ss, name, ',');
-            getline(ss, number, ',');
-            getline(ss, email, ',');
-            getline(ss, type, ',');
-            getline(ss, favorite, ',');
-
             Contact contact(name, number, email, type);
             contact.isFavorite = (favorite == "Yes");
-            insert(contact);
+
+            insert(contact); // Insert the contact into BST
+
         }
-
-        file.close();
-        cout << "\nContacts loaded successfully from " << filename << "\n";
     }
+    file.close();
+}
 
+
+// Save to file in a single line format for each contact
+void saveToFile(const string &filename) const
+{
+    ofstream file(filename);
+    if (file.is_open())
+    {
+        inOrder(root, file);
+        file.close();
+        cout << "\nContacts saved successfully to " << filename << "\n";
+    }
+    else
+    {
+        cout << "\nFailed to open file for saving.\n";
+    }
+}
     void deleteMultipleContacts(const vector<string> &names)
     {
         for (const auto &name : names)
@@ -441,19 +453,38 @@ public:
             cout << "\nContact not found or is not a favorite.\n";
         }
     }
-
-    void displayAllContacts() const
+// Function to display all contacts in block format
+void displayAllContacts() const
+{
+    if (root == nullptr)
     {
-        if (root == nullptr)
-        {
-            cout << "\nNo contacts available.\n";
-        }
-        else
-        {
-            cout << "\nDisplaying all contacts:\n";
-            inOrder(root, cout); // Use cout to display to console
-        }
+        cout << "\nNo contacts available.\n";
     }
+    else
+    {
+        cout << "\nDisplaying all contacts:\n";
+        displayInOrder(root);
+    }
+}
+
+// Helper function to display each contact with labels in block format
+void displayInOrder(Node *node) const
+{
+    if (!node)
+        return;
+
+    displayInOrder(node->left);
+
+    // Display each contact's details with labels
+    cout << "\nName: " << node->contact.name
+         << "\nNumber: " << node->contact.number
+         << "\nEmail: " << node->contact.email
+         << "\nType: " << node->contact.type
+         << "\nFavorite: " << (node->contact.isFavorite ? "Yes" : "No") << "\n";
+
+    displayInOrder(node->right);
+}
+
 
     void displayFavoriteContacts() const
     {
@@ -527,7 +558,7 @@ private:
         string inputPassword;
         while (attempts < 3)
         {
-            //cout << "\nEnter password: ";
+            // cout << "\nEnter password: ";
             passLogic(inputPassword, "Enter password: ");
             // getline(cin, inputPassword);
             if (inputPassword == password)
@@ -592,10 +623,10 @@ public:
 
     void startApp()
     {
-        if (!authenticate())
-        {
-            return; // Exit if authentication fails
-        }
+        //     if (!authenticate())
+        //     {
+        //         return; // Exit if authentication fails
+        //     }
         // Load contacts immediately when the app starts
         bst.loadFromFile("contacts.txt");
 

@@ -1,14 +1,2 @@
-Name: 
-Number: 
-Email: 
-Type: 
-Favorite: No
-
-Name: Email: Ali@gmail.com
-Number: 
-Email: 
-Type: 
-Favorite: No
-
-
-
+anees 34563 anees@gmail.com local No
+shameel 324 anees@gmail.com local No

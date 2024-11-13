@@ -246,6 +246,7 @@ private:
         }
         return search(node->right, name);
     }
+    
 
     void inOrder(Node *node, ostream &os) const
     {
@@ -432,6 +433,7 @@ public:
             cout << "\nContact not found.\n";
         }
     }
+    
 
     void removeFromFavorite(const string &name)
     {
@@ -462,22 +464,22 @@ public:
     }
 
     // Helper function to display each contact with labels in block format
-    void displayInOrder(Node *node) const
-    {
-        if (!node)
-            return;
+   void displayInOrder(Node *node) const
+{
+    if (!node) return;
 
-        displayInOrder(node->left);
+    displayInOrder(node->left);
 
-        // Display each contact's details with labels
-        cout << "\nName: " << node->contact.name
-             << "\nNumber: " << node->contact.number
-             << "\nEmail: " << node->contact.email
-             << "\nType: " << node->contact.type
-             << "\nFavorite: " << (node->contact.isFavorite ? "Yes" : "No") << "\n";
+    cout << "\n---------------------------";
+    cout << "\nName: " << node->contact.name
+         << "\nNumber: " << node->contact.number
+         << "\nEmail: " << node->contact.email
+         << "\nType: " << node->contact.type
+         << "\nFavorite: " << (node->contact.isFavorite ? "Yes" : "No");
+    cout << "\n---------------------------";
 
-        displayInOrder(node->right);
-    }
+    displayInOrder(node->right);
+}
 
     void displayFavoriteContacts() const
     {
@@ -545,6 +547,22 @@ private:
         }
     }
 
+    void backupContacts() const
+{
+    ifstream src("contacts.txt", ios::binary);
+    ofstream dest("contacts_backup.txt", ios::binary);
+    
+    if (src.is_open() && dest.is_open())
+    {
+        dest << src.rdbuf(); // Copy all contents
+        cout << "\nBackup created successfully as 'contacts_backup.txt'\n";
+    }
+    else
+    {
+        cout << "\nFailed to create backup.\n";
+    }
+}
+
     bool authenticate()
     {
         int attempts = 0;
@@ -604,7 +622,7 @@ public:
             else if (choice == "2")
             {
                 system("cls");
-                // backupContacts();  // Uncomment if backupContacts function is implemented
+                 backupContacts();  // Uncomment if backupContacts function is implemented
             }
             else if (choice == "3")
             {

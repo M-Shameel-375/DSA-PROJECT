@@ -11,7 +11,7 @@
 using namespace std;
 
 // Error Handling Class
-class Validations // class for input validations
+class Validation // class for input validations
 {
 public:
     // Name validation function
@@ -42,6 +42,11 @@ public:
         }
         return true;
     }
+    bool isValidEmail(const string &email) const
+{
+    regex emailPattern(R"((\w+)(\.?)(\w*)@gmail\.com)");
+    return regex_match(email, emailPattern);
+}
 
     // String validation to check if not empty and not only spaces
     bool stringValidation(const string &str)
@@ -135,54 +140,70 @@ public:
         password = pass;
     }
 };
-
 // Class for contact details
-class Contact
-{
+class Contact {
 public:
-    string name;
-    string number;
-    string email;
-    string type;
+    string name, number, email, type;
     bool isFavorite;
-    Contact(string name = "", string number = "", string email = "", string type = "")
-        : name(name), number(number), email(email), type(type), isFavorite(false) {}
 
-    friend ostream &operator<<(ostream &os, const Contact &contact)
-    {
-        os << "\nName: " << contact.name
-           << "\nNumber: " << contact.number
-           << "\nEmail: " << contact.email
-           << "\nType: " << contact.type
-           << "\nFavorite: " << (contact.isFavorite ? "Yes" : "No") << endl;
+    Contact(string name = "", string number = "", string email = "", string type = "", bool favorite = false)
+        : name(name), number(number), email(email), type(type), isFavorite(favorite) {}
+
+    void markAsFavorite(bool favorite) { isFavorite = favorite; }
+    friend ostream &operator<<(ostream &os, const Contact &contact) {
+        os << "Name: " << contact.name << "\nNumber: " << contact.number << "\nEmail: " << contact.email
+           << "\nType: " << contact.type << "\nFavorite: " << (contact.isFavorite ? "Yes" : "No") << endl;
         return os;
     }
 };
 
-// Node class for Binary Search Tree (BST)
-class Node
-{
-public:
-    Contact contact;
-    Node *left;
-    Node *right;
+// // Node class for Binary Search Tree (BST)
+// class Node
+// {
+// public:
+//     Contact contact;
+//     Node *left;
+//     Node *right;
 
-    Node(Contact contact) : contact(contact), left(nullptr), right(nullptr) {}
-    ~Node()
-    {
-        delete left;
-        delete right;
-    }
-};
-
-// Binary Search Tree (BST) class to store contacts
-
-class BST
-
+//     Node(Contact contact) : contact(contact), left(nullptr), right(nullptr) {}
+//     ~Node()
+//     {
+//         delete left;
+//         delete right;
+//     }
+// };
+class BST : public Validation
 {
 private:
-    Node *root;
+    struct Node 
+    {
+        Contact contact;
+        Node *left, *right;
+        Node(Contact c) : contact(c), left(nullptr), right(nullptr) {}
+    };
 
+    // Recursive helper functions (insert, delete, search, display)
+public:
+    Node *root;
+    BST() : root(nullptr) {}
+    public:
+    void insert(Contact contact) {
+        root = insert(root, contact);  // Call private insert with root
+    }
+       void saveToFile(const string &filename) const
+    {
+        ofstream file(filename);
+        if (file.is_open())
+        {
+            inOrder(root, file);
+            file.close();
+            cout << "\nContacts saved successfully to " << filename << "\n";
+        }
+        else
+        {
+            cout << "\nFailed to open file for saving.\n";
+        }
+    }
     Node *insert(Node *node, Contact contact)
     {
         if (node == nullptr)
@@ -255,7 +276,6 @@ private:
 
         inOrder(node->left, os);
 
-        // Writing each contact in one line with space-separated values
         os << node->contact.name << " "
            << node->contact.number << " "
            << node->contact.email << " "
@@ -264,19 +284,6 @@ private:
 
         inOrder(node->right, os);
     }
-
-public:
-    BST() : root(nullptr) {}
-    ~BST()
-    {
-        delete root;
-    }
-
-bool isValidEmail(const string &email) const
-{
-    regex emailPattern(R"((\w+)(\.?)(\w*)@gmail\.com)");
-    return regex_match(email, emailPattern);
-}
 
     Node *deleteNode(Node *node, const string &name)
     {
@@ -311,62 +318,6 @@ bool isValidEmail(const string &email) const
         }
         return node;
     }
-
-    void insert(Contact contact)
-    {
-        root = insert(root, contact);
-    }
-    void loadFromFile(const string &filename)
-    {
-        ifstream file(filename);
-        if (!file.is_open())
-        {
-            cout << "\nFailed to open file for loading.\n";
-            return;
-        }
-
-        // Clear the current BST to avoid duplication if reloaded
-        delete root;
-        root = nullptr;
-
-        string line, name, number, email, type, favorite;
-        int contactCount = 0; // Track the number of contacts loaded
-
-        while (getline(file, line))
-        {
-            stringstream ss(line);
-            getline(ss, name, ' ');
-            getline(ss, number, ' ');
-            getline(ss, email, ' ');
-            getline(ss, type, ' ');
-            getline(ss, favorite, ' ');
-
-            if (!name.empty() && !number.empty() && !email.empty() && !type.empty())
-            {
-                Contact contact(name, number, email, type);
-                contact.isFavorite = (favorite == "Yes");
-
-                insert(contact); // Insert the contact into BST
-            }
-        }
-        file.close();
-    }
-
-    // Save to file in a single line format for each contact
-    void saveToFile(const string &filename) const
-    {
-        ofstream file(filename);
-        if (file.is_open())
-        {
-            inOrder(root, file);
-            file.close();
-            cout << "\nContacts saved successfully to " << filename << "\n";
-        }
-        else
-        {
-            cout << "\nFailed to open file for saving.\n";
-        }
-    }
     void deleteMultipleContacts(const vector<string> &names)
     {
         for (const auto &name : names)
@@ -376,17 +327,11 @@ bool isValidEmail(const string &email) const
         cout << "\nSpecified contacts have been deleted.\n";
     }
 
-    // Function to delete all contacts
     void deleteAllContacts()
     {
         delete root;
         root = nullptr;
         cout << "\nAll contacts have been deleted.\n";
-    }
-
-    Node *searchContact(const string &name) const
-    {
-        return search(root, name);
     }
 
     void editContact(const string &name)
@@ -404,7 +349,7 @@ bool isValidEmail(const string &email) const
             cout << "Enter new email (or press enter to keep current): ";
             string newEmail;
             getline(cin, newEmail);
-            if (!newEmail.empty() && isValidEmail(newEmail))
+            if (!newEmail.empty() && Validation::isValidEmail(newEmail))
                 contactNode->contact.email = newEmail;
 
             cout << "Enter new type (or press enter to keep current): ";
@@ -435,7 +380,160 @@ bool isValidEmail(const string &email) const
             cout << "\nContact not found.\n";
         }
     }
-    
+
+    void addContact()
+    {
+        string name, number, email, type;
+
+        while (true)
+        {
+            cout << "\nEnter the Name ";
+            getline(cin, name);
+            if (Validation::nameValidation(name)) // Validate the username
+            {
+                break; // Exit loop if username is valid
+            }
+            else
+            {
+                cout << "\n\n\tInvalid Name. Please try again.\n";
+            }
+        }
+
+        while (true)
+        {
+            cout << "Enter number: ";
+            getline(cin, number);
+            if (Validation::phoneValidation(number))
+            {
+                break;
+            }
+            else
+            {
+                cout << "\n\n\tInvalid Number. Please try again.\n";
+            }
+        }
+        while (true)
+        {
+            cout << "Enter email (must end with '@gmail.com'): ";
+            getline(cin, email);
+            if (Validation::isValidEmail(email))
+            {
+                break;
+            }
+            else
+            {
+                cout << "\nInvalid email. Please ensure the email ends with '@gmail.com'.\n";
+            }
+        }
+
+        while (true)
+        {
+            cout << "Enter type (PTCL, Local, Emergency): ";
+            getline(cin, type);
+            if (Validation::nameValidation(type)) // Validate the username
+            {
+                break; // Exit loop if username is valid
+            }
+            else
+            {
+                cout << "\n\n\tInvalid Type. Please try again.\n";
+            }
+        }
+
+        Contact newContact(name, number, email, type);
+        insert(newContact);
+        saveToFile("contacts.txt"); // Save after adding contact
+        cout << "\nContact added successfully!\n";
+    }
+
+    void markAsFavorite()
+    {
+        string name;
+        while (true)
+        {
+            cout << "\nEnter the name of the contact to mark as favorite: ";
+            getline(cin, name);
+            if (Validation::nameValidation(name)) // Validate the username
+            {
+                break; // Exit loop if username is valid
+            }
+            else
+            {
+                cout << "\n\n\tInvalid Name. Please try again.\n";
+            }
+        }
+        markAsFavorite(name);
+        saveToFile("contacts.txt"); // Save after marking as favorite
+    }
+
+    void removeFromFavorite()
+    {
+        string name;
+        while (true)
+        {
+            cout << "\nEnter the name of the contact to remove from favorites: ";
+            getline(cin, name);
+            if (Validation::nameValidation(name)) // Validate the username
+            {
+                break; // Exit loop if username is valid
+            }
+            else
+            {
+                cout << "\n\n\tInvalid Name. Please try again.\n";
+            }
+        }
+        removeFromFavorite(name);
+        saveToFile("contacts.txt"); // Save after removing from favorite
+    }
+
+
+    void editContact()
+    {
+        string name;
+        while (true)
+        {
+            cout << "\nEnter the name of the contact to edit: ";
+            getline(cin, name);
+            if (Validation::nameValidation(name)) // Validate the username
+            {
+                break; // Exit loop if username is valid
+            }
+            else
+            {
+                cout << "\n\n\tInvalid Name. Please try again.\n";
+            }
+        }
+        editContact(name);
+        saveToFile("contacts.txt"); // Save after editing contact
+    }
+
+Node* searchContact(const string &name)  // Declare with parameter
+    {
+        // string name;
+        while (true)
+        {
+            cout << "\nEnter the name of the contact to search: ";
+            // getline(cin, name);
+            if (Validation::nameValidation(name)) // Validate the username
+            {
+                break; // Exit loop if username is valid
+            }
+            else
+            {
+                cout << "\n\n\tInvalid Name. Please try again.\n";
+            }
+        }
+        Node *result =  searchContact(name);
+        if (result)
+        {
+            cout << "\nContact found:\n"
+                 << result->contact;
+        }
+        else
+        {
+            cout << "\nNo contact found with the name " << name << endl;
+        }
+    }
 
     void removeFromFavorite(const string &name)
     {
@@ -496,14 +594,82 @@ bool isValidEmail(const string &email) const
         }
     }
 };
-// Application class that manages user interaction
-class PhoneBookApp : public Validations
+class FileManager : public BST
+ {
+public:
+    void loadFromFile(const string &filename)
+    {
+        ifstream file(filename);
+        if (!file.is_open())
+        {
+            cout << "\nFailed to open file for loading.\n";
+            return;
+        }
+
+        // Clear the current BST to avoid duplication if reloaded
+        delete root;
+        root = nullptr;
+
+        string line, name, number, email, type, favorite;
+        int contactCount = 0; // Track the number of contacts loaded
+
+        while (getline(file, line))
+        {
+            stringstream ss(line);
+            getline(ss, name, ' ');
+            getline(ss, number, ' ');
+            getline(ss, email, ' ');
+            getline(ss, type, ' ');
+            getline(ss, favorite, ' ');
+
+            if (!name.empty() && !number.empty() && !email.empty() && !type.empty())
+            {
+                Contact contact(name, number, email, type);
+                contact.isFavorite = (favorite == "Yes");
+
+                insert(contact); // Insert the contact into BST
+            }
+        }
+        file.close();
+    }
+
+    // Save to file in a single line format for each contact
+    void saveToFile(const string &filename) const
+    {
+        ofstream file(filename);
+        if (file.is_open())
+        {
+            inOrder(root, file);
+            file.close();
+            cout << "\nContacts saved successfully to " << filename << "\n";
+        }
+        else
+        {
+            cout << "\nFailed to open file for saving.\n";
+        }
+    }
+    void backupContacts() const
 {
-private:
-    BST bst;
+    ifstream src("contacts.txt", ios::binary);
+    ofstream dest("contacts_backup.txt", ios::binary);
+    
+    if (src.is_open() && dest.is_open())
+    {
+        dest << src.rdbuf(); // Copy all contents
+        cout << "\nBackup created successfully as 'contacts_backup.txt'\n";
+    }
+    else
+    {
+        cout << "\nFailed to create backup.\n";
+    }
+}
+};
+class Authentication : protected Validation
+{
+
+public:
     string password;
     string securityAnswer;
-
     void changePassword()
     {
         while (true)
@@ -549,21 +715,6 @@ private:
         }
     }
 
-    void backupContacts() const
-{
-    ifstream src("contacts.txt", ios::binary);
-    ofstream dest("contacts_backup.txt", ios::binary);
-    
-    if (src.is_open() && dest.is_open())
-    {
-        dest << src.rdbuf(); // Copy all contents
-        cout << "\nBackup created successfully as 'contacts_backup.txt'\n";
-    }
-    else
-    {
-        cout << "\nFailed to create backup.\n";
-    }
-}
 
     bool authenticate()
     {
@@ -588,6 +739,17 @@ private:
         return false;
     }
 
+};
+// Application class that manages user interaction
+class PhoneBookApp : public Authentication, public FileManager
+{
+private:
+    BST bst;
+    FileManager fileManager;
+    Validation validator;
+    Authentication auth;
+    string password;
+    string securityAnswer;
 public:
     PhoneBookApp() : password("123"), securityAnswer("blue") {}
 
@@ -609,7 +771,7 @@ public:
             {
                 cout << "\nSelect an option: ";
                 getline(cin, choice);
-                if (menuChoice(choice))
+                if (validator.menuChoice(choice))
                 {
                     break;
                 }
@@ -641,7 +803,7 @@ public:
         //         return; // Exit if authentication fails
         //     }
         // Load contacts immediately when the app starts
-        bst.loadFromFile("contacts.txt");
+        loadFromFile("contacts.txt");
 
         string choice;
         do
@@ -651,7 +813,7 @@ public:
             {
                 cout << "\nSelect an option: ";
                 getline(cin, choice);
-                if (menuChoice(choice))
+                if (validator.menuChoice(choice))
                 {
                     break;
                 }
@@ -660,18 +822,17 @@ public:
             if (choice == "1")
             {
                 system("cls");
-                addContact();
+                bst.addContact();
             }
             else if (choice == "2")
             {
                 system("cls");
-                editContact();
+                bst.editContact();
             }
             else if (choice == "3")
             {
                 system("cls");
-                searchContact();
-            }
+                bst.searchContact("contactName");            }
             else if (choice == "4")
             {
                 system("cls");
@@ -685,7 +846,7 @@ public:
             else if (choice == "6")
             {
                 system("cls");
-                displayAllContacts();
+                bst.displayAllContacts();
             }
             else if (choice == "7")
             {
@@ -705,7 +866,7 @@ public:
         {
             cout << "\nSelect an option: ";
             getline(cin, choice);
-            if (menuChoice(choice))
+            if (validator.menuChoice(choice))
             {
                 break;
             }
@@ -725,12 +886,12 @@ public:
                 names.push_back(name);
             }
             bst.deleteMultipleContacts(names);
-            bst.saveToFile("contacts.txt"); // Save after batch delete
+            saveToFile("contacts.txt"); // Save after batch delete
         }
         else if (choice == "2")
         {
             bst.deleteAllContacts();
-            bst.saveToFile("contacts.txt"); // Save after deleting all
+            saveToFile("contacts.txt"); // Save after deleting all
         }
         else
         {
@@ -738,168 +899,6 @@ public:
         }
     }
 
-    void addContact()
-    {
-        string name, number, email, type;
-
-        while (true)
-        {
-            cout << "\nEnter the Name ";
-            getline(cin, name);
-            if (nameValidation(name)) // Validate the username
-            {
-                break; // Exit loop if username is valid
-            }
-            else
-            {
-                cout << "\n\n\tInvalid Name. Please try again.\n";
-            }
-        }
-
-        while (true)
-        {
-            cout << "Enter number: ";
-            getline(cin, number);
-            if (phoneValidation(number))
-            {
-                break;
-            }
-            else
-            {
-                cout << "\n\n\tInvalid Number. Please try again.\n";
-            }
-        }
-        while (true)
-        {
-            cout << "Enter email (must end with '@gmail.com'): ";
-            getline(cin, email);
-            if (bst.isValidEmail(email))
-            {
-                break;
-            }
-            else
-            {
-                cout << "\nInvalid email. Please ensure the email ends with '@gmail.com'.\n";
-            }
-        }
-
-        while (true)
-        {
-            cout << "Enter type (PTCL, Local, Emergency): ";
-            getline(cin, type);
-            if (nameValidation(type)) // Validate the username
-            {
-                break; // Exit loop if username is valid
-            }
-            else
-            {
-                cout << "\n\n\tInvalid Type. Please try again.\n";
-            }
-        }
-
-        Contact newContact(name, number, email, type);
-        bst.insert(newContact);
-        bst.saveToFile("contacts.txt"); // Save after adding contact
-        cout << "\nContact added successfully!\n";
-    }
-
-    void markAsFavorite()
-    {
-        string name;
-        while (true)
-        {
-            cout << "\nEnter the name of the contact to mark as favorite: ";
-            getline(cin, name);
-            if (nameValidation(name)) // Validate the username
-            {
-                break; // Exit loop if username is valid
-            }
-            else
-            {
-                cout << "\n\n\tInvalid Name. Please try again.\n";
-            }
-        }
-        bst.markAsFavorite(name);
-        bst.saveToFile("contacts.txt"); // Save after marking as favorite
-    }
-
-    void removeFromFavorite()
-    {
-        string name;
-        while (true)
-        {
-            cout << "\nEnter the name of the contact to remove from favorites: ";
-            getline(cin, name);
-            if (nameValidation(name)) // Validate the username
-            {
-                break; // Exit loop if username is valid
-            }
-            else
-            {
-                cout << "\n\n\tInvalid Name. Please try again.\n";
-            }
-        }
-        bst.removeFromFavorite(name);
-        bst.saveToFile("contacts.txt"); // Save after removing from favorite
-    }
-
-    void displayFavoriteContacts()
-    {
-        bst.displayFavoriteContacts();
-    }
-
-    void editContact()
-    {
-        string name;
-        while (true)
-        {
-            cout << "\nEnter the name of the contact to edit: ";
-            getline(cin, name);
-            if (nameValidation(name)) // Validate the username
-            {
-                break; // Exit loop if username is valid
-            }
-            else
-            {
-                cout << "\n\n\tInvalid Name. Please try again.\n";
-            }
-        }
-        bst.editContact(name);
-        bst.saveToFile("contacts.txt"); // Save after editing contact
-    }
-
-    void searchContact()
-    {
-        string name;
-        while (true)
-        {
-            cout << "\nEnter the name of the contact to search: ";
-            getline(cin, name);
-            if (nameValidation(name)) // Validate the username
-            {
-                break; // Exit loop if username is valid
-            }
-            else
-            {
-                cout << "\n\n\tInvalid Name. Please try again.\n";
-            }
-        }
-        Node *result = bst.searchContact(name);
-        if (result)
-        {
-            cout << "\nContact found:\n"
-                 << result->contact;
-        }
-        else
-        {
-            cout << "\nNo contact found with the name " << name << endl;
-        }
-    }
-
-    void displayAllContacts()
-    {
-        bst.displayAllContacts();
-    }
 
     void manageFavorites()
     {
@@ -911,7 +910,7 @@ public:
             {
                 cout << "\nSelect an option: ";
                 getline(cin, choice);
-                if (menuChoice(choice))
+                if (validator.menuChoice(choice))
                 {
                     break;
                 }
@@ -920,17 +919,17 @@ public:
             if (choice == "1")
             {
                 system("cls");
-                markAsFavorite();
+                bst.markAsFavorite();
             }
             else if (choice == "2")
             {
                 system("cls");
-                removeFromFavorite();
+                bst.removeFromFavorite();
             }
             else if (choice == "3")
             {
                 system("cls");
-                displayFavoriteContacts();
+                bst.displayFavoriteContacts();
             }
         } while (choice != "0");
     }

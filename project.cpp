@@ -943,6 +943,24 @@ public:
         cout << "\n0. Exit";
     }
 };
+void searchRec(BSTNode* node, const string& input, bool& found) {
+        if (!node) return;
+
+        // Check if the current node's name contains the input
+        string lowerName = node->name;
+        transform(lowerName.begin(), lowerName.end(), lowerName.begin(), ::tolower);
+        string lowerInput = input;
+        transform(lowerInput.begin(), lowerInput.end(), lowerInput.begin(), ::tolower);
+
+        if (lowerName.find(lowerInput) != string::npos) {
+            cout << node->name << endl;
+            found = true;
+        }
+
+        // Recursively search left and right subtrees
+        searchRec(node->left, input, found);
+        searchRec(node->right, input, found);
+    }
 void performSearch(BST& bst) {
     string currentInput = "";
 

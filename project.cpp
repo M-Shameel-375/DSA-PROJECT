@@ -22,7 +22,7 @@ public:
             return false;
         }
 
-        return !regex_match(str, regex(".*\\d.*")); // Ensure no digits in name
+        return !regex_match(str, regex(".\\d.")); // Ensure no digits in name
     }
 
     // Menu choice validation (to ensure input is numeric)
@@ -169,12 +169,12 @@ private:
         Node(Contact c) : contact(c), left(nullptr), right(nullptr) {}
     };
 
-    // Recursive helper functions (insert, delete, search, display)
 public:
     Node *root;
     BST() : root(nullptr) {}
 
 public:
+
     void insert(Contact contact)
     {
         root = insert(root, contact); // Call private insert with root
@@ -244,19 +244,6 @@ public:
         displayFavorites(node->right);
     }
 
-    Node *search(Node *node, const string &name) const
-    {
-        if (node == nullptr || node->contact.name == name)
-        {
-            return node;
-        }
-        if (name < node->contact.name)
-        {
-            return search(node->left, name);
-        }
-        return search(node->right, name);
-    }
-
     void inOrder(Node *node, ostream &os) const
     {
         if (!node)
@@ -306,6 +293,7 @@ public:
         }
         return node;
     }
+
     void deleteMultipleContacts(const vector<string> &names)
     {
         for (const auto &name : names)
@@ -370,23 +358,27 @@ public:
     }
 
 
-    Node *searchContact(const string &name) // Declare with parameter
+
+
+
+
+
+    Node *search(Node *node, const string &name) const
     {
-        // string name;
-        while (true)
+        if (node == nullptr || node->contact.name == name)
         {
-            cout << "\nEnter the name of the contact to search: ";
-            // getline(cin, name);
-            if (Validation::nameValidation(name)) // Validate the username
-            {
-                break; // Exit loop if username is valid
-            }
-            else
-            {
-                cout << "\n\n\tInvalid Name. Please try again.\n";
-            }
+            return node;
         }
-        Node *result = searchContact(name);
+        if (name < node->contact.name)
+        {
+            return search(node->left, name);
+        }
+        return search(node->right, name);
+    }
+
+    Node *searchContact(const string &name) // Declares function with parameter
+    {
+        Node *result = search(root, name); // Calls recursive search function correctly
         if (result)
         {
             cout << "\nContact found:\n"
@@ -396,7 +388,167 @@ public:
         {
             cout << "\nNo contact found with the name " << name << endl;
         }
+        return result;
     }
+
+    void loadNmaes(Node *node, string name[], int &i)
+    {
+        if (node == nullptr)
+            return;
+        name[i] = node->contact.name;
+        i++;
+        loadNmaes(node->right, name, i);
+        loadNmaes(node->left, name, i);
+        return;
+    }
+    void loadNunbers(Node *node, string number[], int &j)
+    {
+        if (node == nullptr)
+            return;
+        number[j] = node->contact.number;
+        j++;
+        loadNunbers(node->right, number, j);
+        loadNunbers(node->left, number, j);
+        return;
+    }
+
+    void searchContacts(Node *node)
+    {
+        int size=1000;
+        string name[size];
+        string numbers[size];
+
+        int i = 0;
+        loadNmaes(node, name, i);
+
+
+        int j = 0;
+        loadNunbers(node, numbers, j);
+
+        string matchedNames[i];
+        string matchedNumbers[j];
+
+        string currentInput = "";
+
+        while (true)
+        {
+            system("cls");
+            cout << " ---------------------------------------\n";
+            cout << "| Enter a key to search: " << currentInput << "\t\t|";
+            cout << "\n ---------------------------------------\n";
+
+            int matchCountnames = 0;
+            int matchCountnumbers = 0;
+
+            if (!currentInput.empty())
+            {
+                cout << "\n\n";
+                string lowerInput = currentInput;
+                transform(lowerInput.begin(), lowerInput.end(), lowerInput.begin(), ::tolower);
+
+                for (int i = 0; i < size; i++)
+                {
+                    string lowerName = name[i];
+                    transform(lowerName.begin(), lowerName.end(), lowerName.begin(), ::tolower);
+
+                    if (lowerName.find(lowerInput) != string::npos)
+                    {
+                        matchedNames[matchCountnames++] = name[i]; // Add matched name to matchedNames
+                    }
+                }
+                for (int i = 0; i < size; i++)
+                {
+
+                    if (numbers[i].find(lowerInput) != string::npos)
+                    {
+                        matchedNumbers[matchCountnumbers++] = numbers[i]; // Add matched name to matchedNames
+                    }
+                }
+                if (matchCountnames > 0 || matchCountnumbers > 0)
+                {
+                    for (int i = 0; i < matchCountnames; i++)
+                    {
+                        cout << matchedNames[i] << "\n";
+                    }
+                    for (int i = 0; i < matchCountnumbers; i++)
+                    {
+                        cout << matchedNumbers[i] << "\n";
+                    }
+                }
+  
+                else
+                {
+                    cout << "No Contact found.\n";
+                }
+            }
+            char ch = getch();
+
+            if (ch == 13)
+            {
+                if (matchCountnames <= 0 && matchCountnumbers <= 0)
+                {
+                    break;
+                }
+                system("cls");
+                string lowerInput = currentInput;
+                transform(lowerInput.begin(), lowerInput.end(), lowerInput.begin(), ::tolower);
+
+                bool found = false;
+                displayFullDetails(node, lowerInput, found);
+                break;
+
+            }
+            else if (ch == 27)
+            { // Escape key
+                cout << "\nSearch discarded. Returning to main menu.\n";
+                break;
+            }
+
+            // Handle backspace
+            else if (ch == 8)
+            {
+                if (!currentInput.empty())
+                {
+                    currentInput.pop_back();
+                }
+            }
+            else
+            {
+                currentInput += ch;
+            }
+        }
+    }
+
+    void displayFullDetails(Node *node, const string &currentInput, bool &found) const
+    {
+
+        if (!node)
+            return;
+
+        displayFullDetails(node->left, currentInput, found);
+        string lowerName = node->contact.name;
+        transform(lowerName.begin(), lowerName.end(), lowerName.begin(), ::tolower);
+
+        if (lowerName.find(currentInput) != string::npos || node->contact.number.find(currentInput) != string::npos)
+        {
+            cout << "\n---------------------------";
+            cout << "\nName: " << node->contact.name
+                 << "\nNumber: " << node->contact.number
+                 << "\nEmail: " << node->contact.email
+                 << "\nType: " << node->contact.type
+                 << "\nFavorite: " << (node->contact.isFavorite ? "Yes" : "No");
+            cout << "\n---------------------------";
+            found = true; // Set found to true if a match is found
+        }
+
+        displayFullDetails(node->right, currentInput, found);
+    }
+
+
+
+
+
+
 
     void removeFromFavorite(const string &name)
     {
@@ -412,9 +564,7 @@ public:
             cout << "\nContact not found or is not a favorite.\n";
         }
     }
-    // Function to display all contacts in block format
 
-    // Helper function to display each contact with labels in block format
     void displayInOrder(Node *node) const
     {
         if (!node)
@@ -458,13 +608,11 @@ public:
             return;
         }
 
-        // Clear the current BST to avoid duplication if reloaded
         delete root;
         root = nullptr;
 
         string line, name, number, email, type, favorite;
-        int contactCount = 0; // Track the number of contacts loaded
-
+        int contactCount = 0; 
         while (getline(file, line))
         {
             stringstream ss(line);
@@ -485,7 +633,6 @@ public:
         file.close();
     }
 
-    // Save to file in a single line format for each contact
     void saveToFile(const string &filename) const
     {
         ofstream file(filename);
@@ -507,7 +654,7 @@ public:
 
         if (src.is_open() && dest.is_open())
         {
-            dest << src.rdbuf(); // Copy all contents
+            dest << src.rdbuf();
             cout << "\nBackup created successfully as 'contacts_backup.txt'\n";
         }
         else
@@ -683,7 +830,7 @@ public:
             else if (choice == "3")
             {
                 system("cls");
-                bst.searchContact("contactName");
+                bst.searchContacts(root);
             }
             else if (choice == "4")
             {

@@ -870,7 +870,7 @@ public:
         this->securityAnswer = "blue";
     }
 
-    void loadAndDisplayMenu()
+    void load()
     {
         loadFromFile("contacts.txt");
     }
@@ -1036,7 +1036,12 @@ public:
 int main()
 {
     PhoneBookApp app;
-    app.loadAndDisplayMenu(); // Load contacts and display initial message
+    app.load(); // Load contacts and display initial message
+       if (!app.authenticate())
+    {
+        cout << "\nFailed to authenticate. Exiting program.\n";
+        return 0; // Exit the program if authentication fails
+    }
 
     cout << "\n--- Phone Book Management System ---";
 
@@ -1072,7 +1077,7 @@ int main()
             app.editContact();
         }
         else if (choice == "3")
-        {
+    {
             app.searchContact();
         }
         else if (choice == "4")

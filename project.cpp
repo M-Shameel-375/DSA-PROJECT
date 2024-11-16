@@ -7,14 +7,12 @@
 #include <Windows.h>
 #include <vector>
 #include <conio.h>
-#include <regex>
 using namespace std;
 
 // Error Handling Class
 class Validation // class for input validations
 {
 public:
-    // Name validation function
     bool nameValidation(const string &str)
     {
         if (str.empty())
@@ -22,7 +20,14 @@ public:
             return false;
         }
 
-        return !regex_match(str, regex(".\\d.")); // Ensure no digits in name
+        for (char c : str)
+        {
+            if (!isalpha(c) && c != ' ')
+            {
+                return false;
+            }
+        }
+        return true;
     }
 
     // Menu choice validation (to ensure input is numeric)
@@ -42,10 +47,44 @@ public:
         }
         return true;
     }
-    bool isValidEmail(const string &email) const
+    bool emailValidation(const string &email)
     {
-        regex emailPattern(R"((\w+)(\.?)(\w*)@gmail\.com)");
-        return regex_match(email, emailPattern);
+        const string gmailSuffix = "@gmail.com";
+
+        if (email.empty())
+        {
+            return false;
+        }
+
+        for (char ch : email)
+        {
+            if (isspace(ch))
+            {
+                return false;
+            }
+        }
+
+        if (email.size() <= gmailSuffix.size() + 4)
+        {
+            return false;
+        }
+
+        string prefix = email.substr(0, email.size() - gmailSuffix.size());
+        string suffix = email.substr(email.size() - gmailSuffix.size());
+
+        if (suffix != gmailSuffix)
+        {
+            return false;
+        }
+
+        for (char ch : prefix)
+        {
+            if (!islower(ch) && !isdigit(ch) && ch != '.' && ch != '_' && ch != '-')
+            {
+                return false;
+            }
+        }
+        return true;
     }
 
     // String validation to check if not empty and not only spaces
@@ -67,22 +106,101 @@ public:
         return false;
     }
 
-    // Phone validation to ensure correct format (example for 11-digit phone numbers)
-    bool phoneValidation(const string &input)
+    bool ptclValidation(const string &number)
     {
-        if (input.length() != 11)
+        if (number.size() == 10 && number[0] == '0')
         {
-            return false;
-        }
-
-        for (char ch : input)
-        {
-            if (!isdigit(ch))
+            for (char c : number)
             {
-                return false;
+                if (!isdigit(c))
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+        return false;
+    }
+
+    bool localPhoneNumberValidation(const string &number)
+    {
+        if (((number.substr(0, 4) == "+923") && (number.size() == 13)) || ((number.substr(0, 2) == "03") && (number.size() == 11)))
+        {
+            for (size_t i = 1; i < number.size(); i++)
+            {
+                if (!isdigit(number[i]) && number[i] != '+')
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+        return false;
+    }
+
+    bool emergencyNumberValidation(const string &number)
+    {
+        // Common emergency numbers length
+        if (number.size() == 2 || number.size() == 3)
+        {
+            for (char c : number)
+            {
+                if (!isdigit(c))
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+        return false;
+    }
+
+    bool phoneNumberValidation(const string &number, const string &type)
+    {
+        if (type == "PTCL")
+        {
+            return ptclValidation(number);
+        }
+        else if (type == "Local")
+        {
+            return localPhoneNumberValidation(number);
+        }
+        else if (type == "Emergency")
+        {
+            return emergencyNumberValidation(number);
+        }
+        else
+        {
+            return false; // Invalid type
+        }
+    }
+
+    string formatPhoneNumber(const string &number, const string &type)
+    {
+        if (type == "Local")
+        {
+            if (number.size() == 11 && number.substr(0, 2) == "03")
+            {
+                return number.substr(0, 4) + "-" + number.substr(4, 7);
+            }
+            else if (number.size() == 13 && number.substr(0, 3) == "+92")
+            {
+                return number.substr(0, 4) + " " + number.substr(4, 3) + "-" + number.substr(7, 6);
             }
         }
-        return true;
+        else if (type == "PTCL")
+        {
+            if (number.size() == 10 && number[0] == '0')
+            {
+                return number.substr(0, 3) + "-" + number.substr(3, 7);
+            }
+        }
+        else if (type == "Emergency")
+        {
+            return number; // Emergency numbers usually do not require additional formatting
+        }
+
+        return number; // Return as-is if no specific format is matched
     }
 
     // Function for password logic with masking and reveal option
@@ -159,7 +277,7 @@ public:
     }
 };
 
-class BST : public Validation
+class BST
 {
 private:
     struct Node
@@ -174,25 +292,11 @@ public:
     BST() : root(nullptr) {}
 
 public:
-
     void insert(Contact contact)
     {
         root = insert(root, contact); // Call private insert with root
     }
-    // void saveToFile(const string &filename) const
-    // {
-    //     ofstream file(filename);
-    //     if (file.is_open())
-    //     {
-    //         inOrder(root, file);
-    //         file.close();
-    //         cout << "\nContacts saved successfully to " << filename << "\n";
-    //     }
-    //     else
-    //     {
-    //         cout << "\nFailed to open file for saving.\n";
-    //     }
-    // }
+
     Node *insert(Node *node, Contact contact)
     {
         if (node == nullptr)
@@ -305,9 +409,18 @@ public:
 
     void deleteAllContacts()
     {
-        delete root;
+        deleteTree(root);
         root = nullptr;
         cout << "\nAll contacts have been deleted.\n";
+    }
+
+    void deleteTree(Node *node)
+    {
+        if (node == nullptr)
+            return;
+        deleteTree(node->left);
+        deleteTree(node->right);
+        delete node;
     }
 
     void editContact(const string &name)
@@ -320,19 +433,26 @@ public:
             string newNumber;
             getline(cin, newNumber);
             if (!newNumber.empty())
+            {
                 contactNode->contact.number = newNumber;
+            }
 
             cout << "Enter new email (or press enter to keep current): ";
             string newEmail;
             getline(cin, newEmail);
-            if (!newEmail.empty() && Validation::isValidEmail(newEmail))
+
+            if (!newEmail.empty()) // Assuming emailValidation function exists
+            {
                 contactNode->contact.email = newEmail;
+            }
 
             cout << "Enter new type (or press enter to keep current): ";
             string newType;
             getline(cin, newType);
             if (!newType.empty())
+            {
                 contactNode->contact.type = newType;
+            }
 
             cout << "\nContact updated successfully!\n";
         }
@@ -357,13 +477,7 @@ public:
         }
     }
 
-
-
-
-
-
-
-    Node *search(Node *node, const string &name) const
+     Node *search(Node *node, const string &name) const
     {
         if (node == nullptr || node->contact.name == name)
         {
@@ -414,19 +528,20 @@ public:
 
     void searchContacts(Node *node)
     {
-        int size=1000;
+        const int size = 1000;
+
         string name[size];
         string numbers[size];
 
         int i = 0;
         loadNmaes(node, name, i);
 
-
         int j = 0;
         loadNunbers(node, numbers, j);
 
-        string matchedNames[i];
-        string matchedNumbers[j];
+        string *matchedNames = new string[i];
+        string *matchedNumbers = new string[j];
+
 
         string currentInput = "";
 
@@ -475,7 +590,7 @@ public:
                         cout << matchedNumbers[i] << "\n";
                     }
                 }
-  
+
                 else
                 {
                     cout << "No Contact found.\n";
@@ -485,18 +600,25 @@ public:
 
             if (ch == 13)
             {
-                if (matchCountnames <= 0 && matchCountnumbers <= 0)
-                {
-                    break;
-                }
-                system("cls");
+                // if (matchCountnames <= 0 && matchCountnumbers <= 0)
+                // {
+                //     break;
+                // }
                 string lowerInput = currentInput;
                 transform(lowerInput.begin(), lowerInput.end(), lowerInput.begin(), ::tolower);
 
                 bool found = false;
+
+                // cout<<"jsdf"<<endl;
+                system("CLS");
+                system("CLS");
+                system("CLS");
+                system("CLS");
+                system("CLS");
+
+                system("CLS");
                 displayFullDetails(node, lowerInput, found);
                 break;
-
             }
             else if (ch == 27)
             { // Escape key
@@ -518,16 +640,17 @@ public:
             }
         }
     }
-
     void displayFullDetails(Node *node, const string &currentInput, bool &found) const
     {
-
         if (!node)
             return;
 
         displayFullDetails(node->left, currentInput, found);
         string lowerName = node->contact.name;
-        transform(lowerName.begin(), lowerName.end(), lowerName.begin(), ::tolower);
+        for (size_t i = 0; i < lowerName.length(); ++i)
+        {
+            lowerName[i] = std::tolower(lowerName[i]);
+        }
 
         if (lowerName.find(currentInput) != string::npos || node->contact.number.find(currentInput) != string::npos)
         {
@@ -538,17 +661,11 @@ public:
                  << "\nType: " << node->contact.type
                  << "\nFavorite: " << (node->contact.isFavorite ? "Yes" : "No");
             cout << "\n---------------------------";
-            found = true; // Set found to true if a match is found
+            found = true;
         }
 
         displayFullDetails(node->right, currentInput, found);
     }
-
-
-
-
-
-
 
     void removeFromFavorite(const string &name)
     {
@@ -596,6 +713,7 @@ public:
         }
     }
 };
+
 class FileManager : public BST
 {
 public:
@@ -612,7 +730,7 @@ public:
         root = nullptr;
 
         string line, name, number, email, type, favorite;
-        int contactCount = 0; 
+        int contactCount = 0;
         while (getline(file, line))
         {
             stringstream ss(line);
@@ -647,6 +765,7 @@ public:
             cout << "\nFailed to open file for saving.\n";
         }
     }
+
     void backupContacts() const
     {
         ifstream src("contacts.txt", ios::binary);
@@ -663,25 +782,25 @@ public:
         }
     }
 };
-class Authentication : protected Validation
-{
 
+class Authentication : public Validation // Public inheritance for accessibility
+{
 public:
     string password;
     string securityAnswer;
+
     void changePassword()
     {
         while (true)
         {
-            cout << "\nEnter new password: ";
-            getline(cin, password);
-            if (stringValidation(password)) // Validate the username
+            passLogic(password, "Enter new password: "); // Correct function usage
+            if (stringValidation(password)) // Validate the password
             {
-                break; // Exit loop if username is valid
+                break; // Exit loop if the password is valid
             }
             else
             {
-                cout << "\n\t Invalid Password Patteren" << endl;
+                cout << "\n\tInvalid Password Pattern\n";
             }
         }
         cout << "\nPassword changed successfully!\n";
@@ -695,13 +814,13 @@ public:
         {
             cout << "\nWhat is your favorite color? ";
             getline(cin, answer);
-            if (stringValidation(answer)) // Validate the username
+            if (stringValidation(answer)) // Validate the security answer
             {
-                break; // Exit loop if username is valid
+                break; // Exit loop if the answer is valid
             }
             else
             {
-                cout << "\nInvalid Answer. please try again\n";
+                cout << "\nInvalid Answer. Please try again\n";
             }
         }
         if (answer == securityAnswer)
@@ -720,9 +839,7 @@ public:
         string inputPassword;
         while (attempts < 3)
         {
-            // cout << "\nEnter password: ";
-            passLogic(inputPassword, "Enter password: ");
-            // getline(cin, inputPassword);
+            passLogic(inputPassword, "Enter password: "); // Correct function usage
             if (inputPassword == password)
             {
                 return true;
@@ -737,134 +854,38 @@ public:
         return false;
     }
 };
-// Application class that manages user interaction
+
 class PhoneBookApp : public Authentication, public FileManager
 {
 private:
-    BST bst;
-    FileManager fileManager;
-    Validation validator;
-    Authentication auth;
-    string password;
-    string securityAnswer;
+    // Validation validator; // Declare Validation object
+    BST bst; // Use BST class
+    // The password and securityAnswer fields are already in the Authentication class
 
 public:
-    PhoneBookApp() : password("123"), securityAnswer("blue") {}
-
-    // Main settings menu
-    void settingsMenu()
+    PhoneBookApp()
     {
-        if (!authenticate())
-            return; // Exit if authentication fails
-        string choice;
-        do
-        {
-            cout << "\n--- Settings Menu ---";
-            cout << "\n1. Change Password";
-            cout << "\n2. Backup Contacts";
-            cout << "\n3. Restore Password";
-            cout << "\n0. Return to Main Menu";
-            cout << "\nSelect an option: ";
-            while (true)
-            {
-                cout << "\nSelect an option: ";
-                getline(cin, choice);
-                if (validator.menuChoice(choice))
-                {
-                    break;
-                }
-                cout << "\n\tInvalid option! Please try again.\n\n";
-            }
-
-            if (choice == "1")
-            {
-                system("cls");
-                changePassword();
-            }
-            else if (choice == "2")
-            {
-                system("cls");
-                backupContacts(); // Uncomment if backupContacts function is implemented
-            }
-            else if (choice == "3")
-            {
-                system("cls");
-                restorePassword();
-            }
-        } while (choice != "0");
+        // Initialize password and securityAnswer in the Authentication class
+        this->password = "123";
+        this->securityAnswer = "blue";
     }
 
-    void startApp()
+    void loadAndDisplayMenu()
     {
-        //     if (!authenticate())
-        //     {
-        //         return; // Exit if authentication fails
-        //     }
-        // Load contacts immediately when the app starts
         loadFromFile("contacts.txt");
-
-        string choice;
-        do
-        {
-            displayMenu();
-            while (true)
-            {
-                cout << "\nSelect an option: ";
-                getline(cin, choice);
-                if (validator.menuChoice(choice))
-                {
-                    break;
-                }
-                cout << "\n\tInvalid option! Please try again.\n\n";
-            }
-            if (choice == "1")
-            {
-                system("cls");
-                addContact();
-            }
-            else if (choice == "2")
-            {
-                system("cls");
-                editContact();
-            }
-            else if (choice == "3")
-            {
-                system("cls");
-                bst.searchContacts(root);
-            }
-            else if (choice == "4")
-            {
-                system("cls");
-                batchDelete();
-            }
-            else if (choice == "5")
-            {
-                system("cls");
-                manageFavorites();
-            }
-            else if (choice == "6")
-            {
-                system("cls");
-                displayAllContacts();
-            }
-            else if (choice == "7")
-            {
-                system("cls");
-                settingsMenu();
-            }
-        } while (choice != "0");
     }
+
     void addContact()
     {
         string name, number, email, type;
 
         while (true)
         {
-            cout << "\nEnter the Name ";
+            cout << "\nEnter the Name: ";
             getline(cin, name);
-            if (validator.nameValidation(name)) // Validate the username
+            if (nameValidation(name))
             {
-                break; // Exit loop if username is valid
+                break;
             }
             else
             {
@@ -874,22 +895,49 @@ public:
 
         while (true)
         {
-            cout << "Enter number: ";
-            getline(cin, number);
-            if (validator.phoneValidation(number))
+            cout << "Enter type (PTCL, Local, Emergency): ";
+            getline(cin, type);
+            if (type == "PTCL" || type == "Local" || type == "Emergency")
             {
                 break;
             }
             else
             {
-                cout << "\n\n\tInvalid Number. Please try again.\n";
+                cout << "\n\n\tInvalid Type. Please try again.\n";
             }
         }
+
+        while (true)
+        {
+            cout << "Enter number: ";
+            getline(cin, number);
+            if (phoneNumberValidation(number, type))
+            {
+                number = formatPhoneNumber(number, type); // Format the number
+                break;
+            }
+            else
+            {
+                if (type == "Local")
+                {
+                    cout << "\nInvalid Number. Please use the format 03XX-XXXXXXX for local numbers or +92 3XX-XXXXXXX for international numbers.\n";
+                }
+                else if (type == "PTCL")
+                {
+                    cout << "\nInvalid Number. Please use the format 0XX-XXXXXXX for PTCL landline numbers.\n";
+                }
+                else if (type == "Emergency")
+                {
+                    cout << "\nInvalid Number. Emergency numbers should be 1 to 3 digits long (e.g., 15, 112, 911).\n";
+                }
+            }
+        }
+
         while (true)
         {
             cout << "Enter email (must end with '@gmail.com'): ";
             getline(cin, email);
-            if (validator.isValidEmail(email))
+            if (emailValidation(email))
             {
                 break;
             }
@@ -899,38 +947,38 @@ public:
             }
         }
 
-        while (true)
-        {
-            cout << "Enter type (PTCL, Local, Emergency): ";
-            getline(cin, type);
-            if (validator.nameValidation(type)) // Validate the username
-            {
-                break; // Exit loop if username is valid
-            }
-            else
-            {
-                cout << "\n\n\tInvalid Type. Please try again.\n";
-            }
-        }
-
         Contact newContact(name, number, email, type);
-        insert(newContact);
+        bst.insert(newContact);     // Insert the contact into BST
         saveToFile("contacts.txt"); // Save after adding contact
         cout << "\nContact added successfully!\n";
     }
 
-    void displayAllContacts() const
+    void editContact()
     {
-        if (root == nullptr)
+        string name;
+        while (true)
         {
-            cout << "\nNo contacts available.\n";
+            cout << "\nEnter the name of the contact to edit: ";
+            getline(cin, name);
+            if (nameValidation(name))
+            {
+                break;
+            }
+            else
+            {
+                cout << "\n\n\tInvalid Name. Please try again.\n";
+            }
         }
-        else
-        {
-            cout << "\nDisplaying all contacts:\n";
-            bst.displayInOrder(root);
-        }
+        bst.editContact(name);
+        saveToFile("contacts.txt"); // Save after editing contact
     }
+
+    void searchContact()
+    {
+         system("cls");
+        bst.searchContacts(root);
+    }
+
     void markAsFavorite()
     {
         string name;
@@ -938,9 +986,9 @@ public:
         {
             cout << "\nEnter the name of the contact to mark as favorite: ";
             getline(cin, name);
-            if (validator.nameValidation(name)) // Validate the username
+            if (nameValidation(name))
             {
-                break; // Exit loop if username is valid
+                break;
             }
             else
             {
@@ -958,9 +1006,9 @@ public:
         {
             cout << "\nEnter the name of the contact to remove from favorites: ";
             getline(cin, name);
-            if (validator.nameValidation(name)) // Validate the username
+            if (nameValidation(name))
             {
-                break; // Exit loop if username is valid
+                break;
             }
             else
             {
@@ -971,115 +1019,30 @@ public:
         saveToFile("contacts.txt"); // Save after removing from favorite
     }
 
-    void editContact()
+    void displayAllContacts() const
     {
-        string name;
-        while (true)
+        if (root == nullptr)
         {
-            cout << "\nEnter the name of the contact to edit: ";
-            getline(cin, name);
-            if (validator.nameValidation(name)) // Validate the username
-            {
-                break; // Exit loop if username is valid
-            }
-            else
-            {
-                cout << "\n\n\tInvalid Name. Please try again.\n";
-            }
-        }
-        bst.editContact(name);
-        saveToFile("contacts.txt"); // Save after editing contact
-    }
-
-    void batchDelete()
-    {
-        cout << "\n--- Batch Delete Menu ---";
-        cout << "\n1. Delete multiple contacts by name";
-        cout << "\n2. Delete all contacts";
-        string choice;
-        while (true)
-        {
-            cout << "\nSelect an option: ";
-            getline(cin, choice);
-            if (validator.menuChoice(choice))
-            {
-                break;
-            }
-            cout << "\n\tInvalid option! Please try again.\n\n";
-        }
-
-        if (choice == "1")
-        {
-            vector<string> names;
-            string name;
-            cout << "\nEnter names to delete (type 'done' to finish):\n";
-            while (true)
-            {
-                getline(std::cin, name);
-                if (name == "done")
-                    break;
-                names.push_back(name);
-            }
-            bst.deleteMultipleContacts(names);
-            saveToFile("contacts.txt"); // Save after batch delete
-        }
-        else if (choice == "2")
-        {
-            bst.deleteAllContacts();
-            saveToFile("contacts.txt"); // Save after deleting all
+            cout << "\nNo contacts available.\n";
         }
         else
         {
-            cout << "\nInvalid choice. Returning to main menu.\n";
+            cout << "\nDisplaying all contacts:\n";
+            bst.displayInOrder(root);
         }
     }
+};
 
-    void manageFavorites()
+int main()
+{
+    PhoneBookApp app;
+    app.loadAndDisplayMenu(); // Load contacts and display initial message
+
+    cout << "\n--- Phone Book Management System ---";
+
+    while (true)
     {
         string choice;
-        do
-        {
-            favoriteMenu();
-            while (true)
-            {
-                cout << "\nSelect an option: ";
-                getline(cin, choice);
-                if (validator.menuChoice(choice))
-                {
-                    break;
-                }
-                cout << "\n\tInvalid option! Please try again.\n\n";
-            }
-            if (choice == "1")
-            {
-                system("cls");
-                markAsFavorite();
-            }
-            else if (choice == "2")
-            {
-                system("cls");
-                removeFromFavorite();
-            }
-            else if (choice == "3")
-            {
-                system("cls");
-                bst.displayFavoriteContacts();
-            }
-        } while (choice != "0");
-    }
-
-    void favoriteMenu()
-    {
-        cout << "\n--- Favorite Contacts Menu ---";
-        cout << "\n1. Add to Favorite";
-        cout << "\n2. Remove from Favorite";
-        cout << "\n3. Display Favorite Contacts";
-        cout << "\n0. Exit";
-    }
-
-    void displayMenu()
-    {
-        cout << "\n--- Phone Book Management System ---";
         cout << "\n1. Add Contact";
         cout << "\n2. Edit Contact";
         cout << "\n3. Search Contact";
@@ -1088,12 +1051,198 @@ public:
         cout << "\n6. Display All Contacts";
         cout << "\n7. Settings";
         cout << "\n0. Exit";
-    }
-};
 
-int main()
-{
-    PhoneBookApp app;
-    app.startApp();
+        while (true)
+        {
+            cout << "\nSelect an option: ";
+            getline(cin, choice);
+            if (app.menuChoice(choice))
+            {
+                break;
+            }
+            cout << "\n\t\tInvalid input.\n";
+        }
+
+        if (choice == "1")
+        {
+            app.addContact();
+        }
+        else if (choice == "2")
+        {
+            app.editContact();
+        }
+        else if (choice == "3")
+        {
+            app.searchContact();
+        }
+        else if (choice == "4")
+        {
+            while (true)
+            {
+                string del;
+                cout << "\n--- Batch Delete Menu ---";
+                cout << "\n1. Delete multiple contacts by name";
+                cout << "\n2. Delete all contacts";
+                cout << "\n0. Back";
+                while (true)
+                {
+                    cout << "\nSelect an option: ";
+                    getline(cin, del);
+                    if (app.menuChoice(del))
+                    {
+                        break;
+                    }
+                    cout << "\n\t\tInvalid input.\n";
+                }
+
+                if (del == "1")
+                {
+                    vector<string> names;
+                    string name;
+                    cout << "\nEnter names to delete (type 'done' to finish):\n";
+                    while (true)
+                    {
+                        getline(cin, name);
+                        if (name == "done")
+                        {
+                            break;
+                        }
+                        names.push_back(name);
+                    }
+                    app.deleteMultipleContacts(names);
+                    app.saveToFile("contacts.txt"); // Save after batch delete
+                }
+                else if (del == "2")
+                {
+                    app.deleteAllContacts();
+                    app.saveToFile("contacts.txt"); // Save after deleting all
+                }
+                else if (del == "0")
+                {
+                    cout << "\nBack to menu..." << endl;
+                    break; // Exit the loop and return to the main menu
+                }
+                else
+                {
+                    cout << "\nInvalid choice! Please try again.\n";
+                }
+            }
+        }
+        else if (choice == "5")
+        {
+            while (true)
+            {
+                string subChoice;
+                cout << "\n--- Favorite Contacts Menu ---";
+                cout << "\n1. Add to Favorite";
+                cout << "\n2. Remove from Favorite";
+                cout << "\n3. Display Favorite Contacts";
+                cout << "\n0. Exit";
+
+                while (true)
+                {
+                    cout << "\nSelect an option: ";
+                    getline(cin, subChoice);
+                    if (app.menuChoice(subChoice))
+                    {
+                        break;
+                    }
+                    cout << "\n\t\tInvalid input.\n";
+                }
+
+                if (subChoice == "1")
+                {
+                    app.markAsFavorite();
+                }
+                else if (subChoice == "2")
+                {
+                    app.removeFromFavorite();
+                }
+                else if (subChoice == "3")
+                {
+                    app.displayFavoriteContacts();
+                }
+                else if (subChoice == "0")
+                {
+                    cout << "\nExit Favorite Menu" << endl;
+                    break; // Exit the loop
+                }
+                else
+                {
+                    cout << "\nInvalid option! Please try again.\n";
+                }
+            }
+        }
+        else if (choice == "6")
+        {
+            app.displayAllContacts();
+        }
+        else if (choice == "7")
+        {
+            if (!app.authenticate())
+            {
+                cout << "\nAuthentication failed.\n";
+                continue; // Re-prompt main menu if authentication fails
+            }
+            while (true)
+            {
+                string settingsChoice;
+                cout << "\n--- Settings Menu ---";
+                cout << "\n1. Change Password";
+                cout << "\n2. Backup Contacts";
+                cout << "\n3. Restore Password";
+                cout << "\n0. Return to Main Menu";
+
+                while (true)
+                {
+                    cout << "\nSelect an option: ";
+                    getline(cin, settingsChoice);
+                    if (app.menuChoice(settingsChoice))
+                    {
+                        break;
+                    }
+                    cout << "\n\t\tInvalid input.\n";
+                }
+
+                if (settingsChoice == "1")
+                {
+                    app.changePassword();
+                }
+                else if (settingsChoice == "2")
+                {
+                    app.backupContacts();
+                }
+                else if (settingsChoice == "3")
+                {
+                    app.restorePassword();
+                }
+                else if (settingsChoice == "0")
+                {
+                    cout << "\nExit Settings Menu" << endl;
+                    break;
+                }
+                else
+                {
+                    cout << "\nInvalid choice!" << endl;
+                }
+            }
+        }
+        else if (choice == "0")
+        {
+            cout << "\nExiting...\n";
+            break;
+        }
+        else
+        {
+            cout << "\n\nInvalid option! Please try again!\n";
+        }
+    }
+
     return 0;
 }
+
+// Local (Mobile) Format: 03XX-XXXXXXX or +92 3XX-XXXXXXX
+
+// PTCL (Landline) Format: 0XX-XXXXXXX
+
+// Emergency Number Format: X, XX, XXX

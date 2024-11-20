@@ -1494,7 +1494,95 @@ int main()
                         cout << "\t\t| [0]   |     Back" << setw(31) << "|\n";
                         cout << "\t\t|_______|______________________________________|\n";
 
-                      
+                        while (true)
+                        {
+                            cout << "\n\t\tSelect an option: ";
+                            getline(cin, subChoice);
+                            if (menuChoice(subChoice))
+                            {
+                                break;
+                            }
+                            cout << "\n\t\tInvalid input.\n";
+                        }
+
+                        if (subChoice == "1")
+                        {
+                            // Mark a contact as favorite
+                            system("CLS");
+                            while (true)
+                            {
+                                cout << "\nEnter the name of the contact to mark as Block: ";
+                                getline(cin, mark);
+                                if (nameValidation(mark))
+                                {
+                                    break;
+                                }
+                                else
+                                {
+                                    cout << "\n\n\tInvalid Name. Please try again.\n";
+                                }
+                            }
+                            app.markAsBlock(mark);
+                        }
+                        else if (subChoice == "2")
+                        {
+                            // Unmark a contact as favorite
+                            while (true)
+                            {
+                                cout << "\nEnter the name of the contact to unmark as Block: ";
+                                getline(cin, mark);
+                                if (nameValidation(mark))
+                                {
+                                    break;
+                                }
+                                else
+                                {
+                                    cout << "\n\n\tInvalid Name. Please try again.\n";
+                                }
+                            }
+                            app.unmarkAsBlock(mark);
+                        }
+                        else if (subChoice == "3")
+                        {
+                            system("CLS");
+                            // Display favorite contacts
+                            app.displayBlocked();
+                        }
+                        else if (subChoice == "0")
+                        {
+                            system("CLS");
+                            cout << "\nExit Block Menu" << endl;
+                            break; // Exit the loop
+                        }
+                        else
+                        {
+                            system("CLS");
+                            cout << "\nInvalid option! Please try again.\n";
+                        }
+                    }
+                }
+                else if (settingsChoice == "0")
+                {
+                    system("CLS");
+                    cout << "\nExit Settings Menu" << endl;
+                    break;
+                }
+                else
+                {
+                    system("CLS");
+                    cout << "\nInvalid choice!" << endl;
+                }
+            }
+        }
+        else if (choice == "0")
+        {
+            cout << "\nExiting...\n";
+            break;
+        }
+        else
+        {
+            cout << "\n\nInvalid option! Please try again!\n";
+        }
     }
 
     return 0;

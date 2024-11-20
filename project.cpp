@@ -1086,3 +1086,399 @@ public:
         bst.searchContacts(bst.getRoot());
     }
 };
+
+int main()
+{
+    PhoneBookApp app("contacts.txt", "deleted_contacts.txt");
+    // Load contacts from the primary file
+    // Perform login
+    if (!app.performLogin())
+    {
+        cout << "Login failed! Exiting...\n";
+        return 1;
+    }
+    app.loadContacts();
+
+    system("CLS");
+    cout << "\n\t\t    --- Phone Book Management System ---\n\n";
+
+    while (true)
+    {
+        string choice;
+        cout << "\n\t\t ______________________________________________\n";
+        cout << "\t\t|       |" << setw(40) << "|\n";
+        cout << "\t\t| [1]   |     Add Contact" << setw(24) << "|\n";
+        cout << "\t\t| [2]   |     Edit Contact" << setw(23) << "|\n";
+        cout << "\t\t| [3]   |     Search Contact" << setw(21) << "|\n";
+        cout << "\t\t| [4]   |     Manage Delete Contact" << setw(14) << "|\n";
+        cout << "\t\t| [5]   |     Dsiplay All Contact" << setw(16) << "|\n";
+        cout << "\t\t| [6]   |     Manage Favourite Contacts" << setw(10) << "|\n";
+        cout << "\t\t| [7]   |     Settings" << setw(27) << "|\n";
+        cout << "\t\t| [0]   |     Exit" << setw(31) << "|\n";
+        cout << "\t\t|_______|______________________________________|\n";
+
+        while (true)
+        {
+            cout << "\n\t\tSelect an option: ";
+            getline(cin, choice);
+            if (menuChoice(choice))
+            {
+                break;
+            }
+            cout << "\n\t\tInvalid input.\n";
+        }
+
+        if (choice == "1")
+        {
+            system("CLS");
+            // Manually add a contact
+            string name, phone, email;
+            cout << "\nEnter the contact details\n";
+            while (true)
+            {
+                while (true)
+                {
+                    cout << "\nEnter the Name: ";
+                    getline(cin, name);
+                    if (nameValidation(name))
+                    {
+                        break;
+                    }
+                    else
+                    {
+                        cout << "\n\n\tInvalid Name. Please try again.\n";
+                    }
+                }
+                if (app.contactExists(name))
+                {
+                    cout << "Contact with this name already exists. Please enter a different name.\n";
+                }
+                else
+                {
+                    break;
+                }
+            }
+            while (true)
+            {
+                cout << "Enter number: ";
+                getline(cin, phone);
+                if (phoneValidation(phone))
+                {
+                    break;
+                }
+                else
+                {
+                    cout << "Invalid number. Please try again.\n";
+                }
+            }
+            while (true)
+            {
+                cout << "Enter email (must end with '@gmail.com'): ";
+                getline(cin, email);
+                if (emailValidation(email))
+                {
+                    break;
+                }
+                else
+                {
+                    cout << "\nInvalid email. Please try again.\n";
+                }
+            }
+            Contact newContact(name, phone, email);
+            app.addContact(newContact);
+            // Save contacts to the primary file
+            app.saveContacts();
+        }
+        else if (choice == "2")
+        {
+            system("CLS");
+            // Manually edit a contact
+            string oldName, newName, newPhone, newEmail;
+
+            // Get the old contact name
+            while (true)
+            {
+                cout << "\nEnter the name of the contact to edit: ";
+                getline(cin, oldName);
+                if (nameValidation(oldName))
+                {
+                    break;
+                }
+                else
+                {
+                    cout << "\n\n\tInvalid Name. Please try again.\n";
+                }
+            }
+
+            // Get the new name
+            while (true)
+            {
+                cout << "\nEnter the new name (press 'N' to keep unchanged): ";
+                getline(cin, newName);
+                if (newName == "N" || newName == "n"|| nameValidation(newName))
+                {
+                    if (newName == "N" || newName == "n")
+                        newName = ""; // Keep unchanged
+                    break;
+                }
+                else
+                {
+                    cout << "\n\n\tInvalid Name. Please try again.\n";
+                }
+            }
+
+            // Get the new phone number
+            while (true)
+            {
+                cout << "\nEnter the new phone number (press 'N' to keep unchanged): ";
+                getline(cin, newPhone);
+                if (newPhone == "N" ||newPhone == "n" || phoneValidation(newPhone))
+                {
+                    if (newPhone == "N" || newPhone == "n")
+                        newPhone = ""; // Keep unchanged
+                    break;
+                }
+                else
+                {
+                    cout << "Invalid number. Please try again.\n";
+                }
+            }
+
+            // Get the new email address
+            while (true)
+            {
+                cout << "\nEnter the new email address (press 'N' to keep unchanged): ";
+                getline(cin, newEmail);
+                if (newEmail == "N" || newEmail == "n" || emailValidation(newEmail))
+                {
+                    if (newEmail == "N" || newEmail == "n")
+                        newEmail = ""; // Keep unchanged
+                    break;
+                }
+                else
+                {
+                    cout << "\nInvalid email. Please try again.\n";
+                }
+            }
+
+            // Update the contact
+            app.updateContact(oldName, newName, newPhone, newEmail);
+        }
+
+        else if (choice == "3")
+        {
+            app.searchContacts();
+        }
+        else if (choice == "4")
+        {
+            system("CLS");
+            while (true)
+            {
+                string del;
+                cout << "\n\t\t ______________________________________________\n";
+                cout << "\t\t|       |" << setw(40) << "|\n";
+                cout << "\t\t| [1]   |     Delete Contact by Name" << setw(13) << "|\n";
+                cout << "\t\t| [2]   |     Delete all Contacts" << setw(16) << "|\n";
+                cout << "\t\t| [0]   |     Back" << setw(31) << "|\n";
+                cout << "\t\t|_______|______________________________________|\n";
+                while (true)
+                {
+                    cout << "\n\t\tSelect an option: ";
+                    getline(cin, del);
+                    if (menuChoice(del))
+                    {
+                        break;
+                    }
+                    cout << "\n\t\tInvalid input.\n";
+                }
+
+                if (del == "1")
+                {
+                    // Manually delete a contact
+                    string deleteName;
+                    cout << "\nEnter the name of the contact to delete: ";
+                    getline(cin, deleteName);
+                    Contact *deletedContact = app.getContact(deleteName);
+                    if (deletedContact)
+                    {
+                        app.saveDeletedContact(*deletedContact); // Save to secondary file
+                        app.deleteContactByName(deleteName);
+                        system("CLS");
+                        cout << "\nContact " << deleteName << " deleted.\n";
+                    }
+                    else
+                    {
+                        system("CLS");
+                        cout << "\nContact not found.\n";
+                    }
+                    app.saveContacts();
+                }
+                else if (del == "2")
+                {
+                    string deleteAll;
+                    cout << "\nDo you want to delete all contacts? (y/n): ";
+                    cin >> deleteAll;
+                    cin.ignore(); // Clear the newline character from the buffer
+                    if (deleteAll == "y" || deleteAll == "Y")
+                    {                                     // Save all contacts to the secondary file before deleting
+                        app.saveAllContactsToSecondary(); // Delete all contacts
+                        app.deleteAllContacts();
+                        app.saveContacts(); // Save the empty state
+                        system("CLS");
+                        cout << "\nAll contacts have been deleted and moved to the secondary file.\n";
+                    }
+                }
+                else if (del == "0")
+                {
+                    system("CLS");
+                    cout << "\nBack to menu..." << endl;
+                    break; // Exit the loop and return to the main menu
+                }
+                else
+                {
+                    system("CLS");
+                    cout << "\nInvalid choice! Please try again.\n";
+                }
+            }
+        }
+        else if (choice == "5")
+        {
+            system("CLS");
+            // Display all contacts after adding
+            app.display();
+        }
+        else if (choice == "6")
+        {
+            system("CLS");
+            while (true)
+            {
+                string mark;
+                string subChoice;
+                cout << "\n\t\t ______________________________________________\n";
+                cout << "\t\t|       |" << setw(40) << "|\n";
+                cout << "\t\t| [1]   |     Add to Favourite" << setw(19) << "|\n";
+                cout << "\t\t| [2]   |     Remove From Favourite" << setw(14) << "|\n";
+                cout << "\t\t| [3]   |     Display Favourtie Contacts" << setw(9) << "|\n";
+                cout << "\t\t| [0]   |     Back" << setw(31) << "|\n";
+                cout << "\t\t|_______|______________________________________|\n";
+
+                while (true)
+                {
+                    cout << "\n\t\tSelect an option: ";
+                    getline(cin, subChoice);
+                    if (menuChoice(subChoice))
+                    {
+                        break;
+                    }
+                    cout << "\n\t\tInvalid input.\n";
+                }
+
+                if (subChoice == "1")
+                {
+                    system("CLS");
+                    // Mark a contact as favorite
+
+                    while (true)
+                    {
+                        cout << "\nEnter the name of the contact to mark as favorite: ";
+                        getline(cin, mark);
+                        if (nameValidation(mark))
+                        {
+                            break;
+                        }
+                        else
+                        {
+                            cout << "\n\n\tInvalid Name. Please try again.\n";
+                        }
+                    }
+                    app.markAsFavorite(mark);
+                }
+                else if (subChoice == "2")
+                {
+                    // Unmark a contact as favorite
+                    while (true)
+                    {
+                        system("CLS");
+                        cout << "\nEnter the name of the contact to unmark as favorite: ";
+                        getline(cin, mark);
+                        if (nameValidation(mark))
+                        {
+                            break;
+                        }
+                        else
+                        {
+                            cout << "\n\n\tInvalid Name. Please try again.\n";
+                        }
+                    }
+                    app.unmarkAsFavorite(mark);
+                }
+                else if (subChoice == "3")
+                {
+                    system("CLS");
+                    app.displayFavorites();
+                }
+                else if (subChoice == "0")
+                {
+                    system("CLS");
+                    cout << "\nExit Favorite Menu" << endl;
+                    break; // Exit the loop
+                }
+                else
+                {
+                    system("CLS");
+                    cout << "\nInvalid option! Please try again.\n";
+                }
+            }
+        }
+        else if (choice == "7")
+        {
+            system("CLS");
+            // Perform login
+            if (!app.performLogin())
+            {
+                cout << "Login failed! Returning to main menu...\n";
+                continue;
+            }
+            system("CLS");
+            while (true)
+            {
+                string settingsChoice;
+                cout << "\n\t\t ______________________________________________\n";
+                cout << "\t\t|       |" << setw(40) << "|\n";
+                cout << "\t\t| [1]   |     Change Password" << setw(20) << "|\n";
+                cout << "\t\t| [2]   |     Restore Password" << setw(19) << "|\n";
+                cout << "\t\t| [3]   |     Restore Contacts" << setw(19) << "|\n";
+                cout << "\t\t| [0]   |     Back" << setw(31) << "|\n";
+                cout << "\t\t|_______|______________________________________|\n";
+
+                while (true)
+                {
+                    cout << "\n\t\tSelect an option: ";
+                    getline(cin, settingsChoice);
+                    if (menuChoice(settingsChoice))
+                    {
+                        break;
+                    }
+                    cout << "\n\t\tInvalid input.\n";
+                }
+
+                if (settingsChoice == "1")
+                {
+                    system("CLS");
+                    app.changePassword();
+                }
+                else if (settingsChoice == "2")
+                {
+                    system("CLS");
+                    app.restorePassword();
+                }
+                else if (settingsChoice == "3")
+                {
+                    system("CLS");
+                    // Restore contacts from the secondary file
+                    app.restoreContacts();
+                }
+              
+            }
+    return 0;
+}}

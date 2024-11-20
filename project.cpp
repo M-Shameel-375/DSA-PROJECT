@@ -756,3 +756,205 @@ public:
         displayFullDetails(node->right, currentInput, found);
     }
 };
+class FileManager
+{
+private:
+    string primaryFile;
+    string secondaryFile;
+
+    void writeToFile(const string &filename, const BST &bst) const
+    {
+        ofstream file(filename);
+        if (file.is_open())
+        {
+            bst.writeContactsToFile(file, bst.root);
+            file.close();
+        }
+        else
+        {
+            cout << "Failed to open file for writing: " << filename << endl;
+        }
+    }
+
+public:
+    FileManager(const string &primary, const string &secondary)
+        : primaryFile(primary), secondaryFile(secondary) {}
+
+    void saveContacts(const BST &bst) const
+    {
+        writeToFile(primaryFile, bst);
+    }
+
+    void saveDeletedContact(const Contact &contact) const
+    {
+        ofstream file(secondaryFile, ios::app);
+        if (file.is_open())
+        {
+            file << contact.getName() << ","
+                 << contact.getPhone() << ","
+                 << contact.getEmail() << ","
+                 << (contact.getFavoriteStatus() ? "Yes" : "No") << ","
+                 << (contact.getBlockedStatus() ? "Yes" : "No") << "\n";
+            file.close();
+        }
+        else
+        {
+            cout << "Failed to open file for appending: " << secondaryFile << endl;
+        }
+    }
+
+    void loadContacts(BST &bst) const
+    {
+        ifstream file(primaryFile);
+        if (file.is_open())
+        {
+            string line;
+            while (getline(file, line))
+            {
+                stringstream ss(line);
+                string name, phone, email, favorite, blocked;
+                getline(ss, name, ',');
+                getline(ss, phone, ',');
+                getline(ss, email, ',');
+                getline(ss, favorite, ',');
+                getline(ss, blocked, ',');
+
+                Contact contact(name, phone, email);
+                contact.setFavoriteStatus(favorite == "Yes");
+                contact.setBlockedStatus(blocked == "Yes");
+                bst.addContact(contact);
+            }
+            file.close();
+        }
+        else
+        {
+            cout << "Failed to open file for reading: " << primaryFile << endl;
+        }
+    }
+
+    void restoreContacts(BST &bst) const
+    {
+        ifstream file(secondaryFile);
+        if (file.is_open())
+        {
+            string line;
+            while (getline(file, line))
+            {
+                stringstream ss(line);
+                string name, phone, email, favorite, blocked;
+                getline(ss, name, ',');
+                getline(ss, phone, ',');
+                getline(ss, email, ',');
+                getline(ss, favorite, ',');
+                getline(ss, blocked, ',');
+
+                Contact contact(name, phone, email);
+                contact.setFavoriteStatus(favorite == "Yes");
+                contact.setBlockedStatus(blocked == "Yes");
+                bst.addContact(contact);
+            }
+            file.close();
+        }
+        else
+        {
+            cout << "Failed to open file for reading: " << secondaryFile << endl;
+        }
+        saveContacts(bst);
+
+        ofstream outFile(secondaryFile, ios::trunc);
+        if (outFile.is_open())
+        {
+            outFile.close();
+            cout << "All contacts have been restored and secondary file has been cleared.\n";
+        }
+        else
+        {
+            cout << "Failed to open file for truncating: " << secondaryFile << endl;
+        }
+    }
+};
+
+void BST::saveContactsToSecondary(Node *node, const FileManager &fileManager)
+{
+    if (node == nullptr)
+    {
+        return;
+    }
+    saveContactsToSecondary(node->left, fileManager);
+    fileManager.saveDeletedContact(node->contact);
+    saveContactsToSecondary(node->right, fileManager);
+}
+
+class Authentication
+{
+    string password;
+    string securityAnswer;
+
+public:
+    Authentication() : password("123"), securityAnswer("blue") {}
+
+    void changePassword()
+    {
+        while (true)
+        {
+            passLogic(password, "Enter new password: "); // Correct function usage
+            if (stringValidation(password))
+            {          // Validate the password
+                break; // Exit loop if the password is valid
+            }
+            else
+            {
+                cout << "\n\tInvalid Password Pattern\n";
+            }
+        }
+        cout << "\nPassword changed successfully!\n";
+    }
+
+    void restorePassword()
+    {
+        string answer;
+        cout << "\nTo restore your password, answer the security question.";
+        while (true)
+        {
+            cout << "\nWhat is your favorite color? ";
+            getline(cin, answer);
+            if (stringValidation(answer))
+            {          // Validate the security answer
+                break; // Exit loop if the answer is valid
+            }
+            else
+            {
+                cout << "\nInvalid Answer. Please try again\n";
+            }
+        }
+        if (answer == securityAnswer)
+        {
+            cout << "\nYour password is: " << password << endl;
+        }
+        else
+        {
+            cout << "\nIncorrect answer. Cannot restore password.\n";
+        }
+    }
+
+    bool authenticate()
+    {
+        int attempts = 0;
+        string inputPassword;
+        while (attempts < 3)
+        {
+            passLogic(inputPassword, "Enter password: "); // Correct function usage
+            if (inputPassword == password)
+            {
+                return true;
+            }
+            else
+            {
+                cout << "\nIncorrect password. Try again.\n";
+                attempts++;
+            }
+        }
+        cout << "\nToo many failed attempts. Exiting settings.\n";
+        return false;
+    }
+};

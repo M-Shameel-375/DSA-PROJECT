@@ -7,1247 +7,220 @@
 #include <Windows.h>
 #include <vector>
 #include <conio.h>
+
 using namespace std;
 
-// Error Handling Class
-class Validation // class for input validations
+bool menuChoice(string choice)
 {
-public:
-    bool nameValidation(const string &str)
+    for (int i = 0; i < choice.size(); ++i)
     {
-        if (str.empty())
+        if (!isdigit(choice[i]))
         {
             return false;
         }
-
-        for (char c : str)
-        {
-            if (!isalpha(c) && c != ' ')
-            {
-                return false;
-            }
-        }
-        return true;
     }
-
-    // Menu choice validation (to ensure input is numeric)
-    bool menuChoice(const string &choice)
+    if (choice.empty())
     {
-        if (choice.empty() || choice.find(' ') != string::npos)
-        {
-            return false;
-        }
-
-        for (char ch : choice)
-        {
-            if (!isdigit(ch))
-            {
-                return false;
-            }
-        }
-        return true;
-    }
-    bool emailValidation(const string &email)
-    {
-        const string gmailSuffix = "@gmail.com";
-
-        if (email.empty())
-        {
-            return false;
-        }
-
-        for (char ch : email)
-        {
-            if (isspace(ch))
-            {
-                return false;
-            }
-        }
-
-        if (email.size() <= gmailSuffix.size() + 4)
-        {
-            return false;
-        }
-
-        string prefix = email.substr(0, email.size() - gmailSuffix.size());
-        string suffix = email.substr(email.size() - gmailSuffix.size());
-
-        if (suffix != gmailSuffix)
-        {
-            return false;
-        }
-
-        for (char ch : prefix)
-        {
-            if (!islower(ch) && !isdigit(ch) && ch != '.' && ch != '_' && ch != '-')
-            {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    // String validation to check if not empty and not only spaces
-    bool stringValidation(const string &str)
-    {
-        if (str.empty())
-        {
-            return false;
-        }
-
-        for (char ch : str)
-        {
-            if (!isspace(ch))
-            {
-                return true;
-            }
-        }
-
         return false;
     }
-
-    bool ptclValidation(const string &number)
+    for (int i = 0; i < choice.size(); ++i)
     {
-        if (number.size() == 10 && number[0] == '0')
+        if (choice[i] == ' ')
         {
-            for (char c : number)
-            {
-                if (!isdigit(c))
-                {
-                    return false;
-                }
-            }
-            return true;
-        }
-        return false;
-    }
-
-    bool localPhoneNumberValidation(const string &number)
-    {
-        if (((number.substr(0, 4) == "+923") && (number.size() == 13)) || ((number.substr(0, 2) == "03") && (number.size() == 11)))
-        {
-            for (size_t i = 1; i < number.size(); i++)
-            {
-                if (!isdigit(number[i]) && number[i] != '+')
-                {
-                    return false;
-                }
-            }
-            return true;
-        }
-        return false;
-    }
-
-    bool emergencyNumberValidation(const string &number)
-    {
-        // Common emergency numbers length
-        if (number.size() == 2 || number.size() == 3)
-        {
-            for (char c : number)
-            {
-                if (!isdigit(c))
-                {
-                    return false;
-                }
-            }
-            return true;
-        }
-        return false;
-    }
-
-    bool phoneNumberValidation(const string &number, const string &type)
-    {
-        if (type == "PTCL")
-        {
-            return ptclValidation(number);
-        }
-        else if (type == "Local")
-        {
-            return localPhoneNumberValidation(number);
-        }
-        else if (type == "Emergency")
-        {
-            return emergencyNumberValidation(number);
-        }
-        else
-        {
-            return false; // Invalid type
+            return false;
         }
     }
-
-    string formatPhoneNumber(const string &number, const string &type)
-    {
-        if (type == "Local")
-        {
-            if (number.size() == 11 && number.substr(0, 2) == "03")
-            {
-                return number.substr(0, 4) + "-" + number.substr(4, 7);
-            }
-            else if (number.size() == 13 && number.substr(0, 3) == "+92")
-            {
-                return number.substr(0, 4) + " " + number.substr(4, 3) + "-" + number.substr(7, 6);
-            }
-        }
-        else if (type == "PTCL")
-        {
-            if (number.size() == 10 && number[0] == '0')
-            {
-                return number.substr(0, 3) + "-" + number.substr(3, 7);
-            }
-        }
-        else if (type == "Emergency")
-        {
-            return number; // Emergency numbers usually do not require additional formatting
-        }
-
-        return number; // Return as-is if no specific format is matched
-    }
-
-    // Function for password logic with masking and reveal option
-    void passLogic(string &password, const string &promptText)
-    {
-        char pass[32] = {0};
-        char ch;
-        bool enter = false;
-        int i = 0;
-        bool show = false;
-
-        cout << promptText;
-
-        while (!enter)
-        {
-            ch = _getch();
-
-            if (isalnum(ch))
-            {
-                pass[i] = ch;
-                if (show)
-                {
-                    cout << ch;
-                }
-                else
-                {
-                    cout << "*";
-                }
-                i++;
-            }
-
-            if (ch == '\b' && i >= 1) // Handle backspace
-            {
-                cout << "\b \b";
-                i--;
-            }
-
-            if (ch == '\r') // Enter key
-            {
-                enter = true;
-            }
-
-            if (ch == '\t') // Toggle show/hide password
-            {
-                show = !show;
-                cout << "\r" << promptText;
-                for (int j = 0; j < i; j++)
-                {
-                    cout << (show ? pass[j] : '*');
-                }
-            }
-        }
-
-        pass[i] = '\0';
-        password = pass;
-    }
-};
-// Class for contact details
-class Contact
-{
-public:
-    string name, number, email, type;
-    bool isFavorite;
-
-    Contact(string name = "", string number = "", string email = "", string type = "", bool favorite = false)
-        : name(name), number(number), email(email), type(type), isFavorite(favorite) {}
-
-    void markAsFavorite(bool favorite) { isFavorite = favorite; }
-    friend ostream &operator<<(ostream &os, const Contact &contact)
-    {
-        os << "Name: " << contact.name << "\nNumber: " << contact.number << "\nEmail: " << contact.email
-           << "\nType: " << contact.type << "\nFavorite: " << (contact.isFavorite ? "Yes" : "No") << endl;
-        return os;
-    }
-};
-
-class BST
-{
-private:
-    struct Node
-    {
-        Contact contact;
-        Node *left, *right;
-        Node(Contact c) : contact(c), left(nullptr), right(nullptr) {}
-    };
-
-public:
-    Node *root;
-    BST() : root(nullptr) {}
-
-public:
-    void insert(Contact contact)
-    {
-        root = insert(root, contact); // Call private insert with root
-    }
-
-    Node *insert(Node *node, Contact contact)
-    {
-        if (node == nullptr)
-        {
-            return new Node(contact);
-        }
-
-        if (contact.name < node->contact.name)
-        {
-            node->left = insert(node->left, contact);
-        }
-        else if (contact.name > node->contact.name)
-        {
-            node->right = insert(node->right, contact);
-        }
-        else
-        {
-            if (contact.number != node->contact.number || contact.email != node->contact.email)
-            {
-                node->right = insert(node->right, contact); // Insert with the same name but different info
-            }
-            else
-            {
-                cout << "\nContact already exists with the same name, number, and email.\n";
-            }
-        }
-        return node;
-    }
-
-    Node *minValueNode(Node *node) const
-    {
-        Node *current = node;
-        while (current && current->left != nullptr)
-        {
-            current = current->left;
-        }
-        return current;
-    }
-
-    void displayFavorites(Node *node) const
-    {
-        if (node == nullptr)
-            return;
-        displayFavorites(node->left);
-        if (node->contact.isFavorite)
-        {
-            cout << node->contact;
-        }
-        displayFavorites(node->right);
-    }
-
-    void inOrder(Node *node, ostream &os) const
-    {
-        if (!node)
-            return;
-
-        inOrder(node->left, os);
-
-        os << node->contact.name << " "
-           << node->contact.number << " "
-           << node->contact.email << " "
-           << node->contact.type << " "
-           << (node->contact.isFavorite ? "Yes" : "No") << "\n";
-
-        inOrder(node->right, os);
-    }
-
-    Node *deleteNode(Node *node, const string &name)
-    {
-        if (node == nullptr)
-            return node;
-
-        if (name < node->contact.name)
-        {
-            node->left = deleteNode(node->left, name);
-        }
-        else if (name > node->contact.name)
-        {
-            node->right = deleteNode(node->right, name);
-        }
-        else
-        {
-            if (node->left == nullptr)
-            {
-                Node *temp = node->right;
-                delete node;
-                return temp;
-            }
-            else if (node->right == nullptr)
-            {
-                Node *temp = node->left;
-                delete node;
-                return temp;
-            }
-            Node *temp = minValueNode(node->right);
-            node->contact = temp->contact;
-            node->right = deleteNode(node->right, temp->contact.name);
-        }
-        return node;
-    }
-
-    void deleteMultipleContacts(const vector<string> &names)
-    {
-        for (const auto &name : names)
-        {
-            root = deleteNode(root, name);
-        }
-        cout << "\nSpecified contacts have been deleted.\n";
-    }
-
-    void deleteAllContacts()
-    {
-        deleteTree(root);
-        root = nullptr;
-        cout << "\nAll contacts have been deleted.\n";
-    }
-
-    void deleteTree(Node *node)
-    {
-        if (node == nullptr)
-            return;
-        deleteTree(node->left);
-        deleteTree(node->right);
-        delete node;
-    }
-
-    void editContact(const string &name)
-    {
-        Node *contactNode = searchContact(name);
-        if (contactNode)
-        {
-            cout << "\nEditing contact details for " << name << ":\n";
-            cout << "Enter new number (or press enter to keep current): ";
-            string newNumber;
-            getline(cin, newNumber);
-            if (!newNumber.empty())
-            {
-                contactNode->contact.number = newNumber;
-            }
-
-            cout << "Enter new email (or press enter to keep current): ";
-            string newEmail;
-            getline(cin, newEmail);
-
-            if (!newEmail.empty()) // Assuming emailValidation function exists
-            {
-                contactNode->contact.email = newEmail;
-            }
-
-            cout << "Enter new type (or press enter to keep current): ";
-            string newType;
-            getline(cin, newType);
-            if (!newType.empty())
-            {
-                contactNode->contact.type = newType;
-            }
-
-            cout << "\nContact updated successfully!\n";
-        }
-        else
-        {
-            cout << "\nContact not found.\n";
-        }
-    }
-
-    void markAsFavorite(const string &name)
-    {
-        Node *contactNode = searchContact(name);
-        if (contactNode)
-        {
-            contactNode->contact.isFavorite = true;
-            cout << "\n"
-                 << name << " has been added to favorites.\n";
-        }
-        else
-        {
-            cout << "\nContact not found.\n";
-        }
-    }
-
-     Node *search(Node *node, const string &name) const
-    {
-        if (node == nullptr || node->contact.name == name)
-        {
-            return node;
-        }
-        if (name < node->contact.name)
-        {
-            return search(node->left, name);
-        }
-        return search(node->right, name);
-    }
-
-    Node *searchContact(const string &name) // Declares function with parameter
-    {
-        Node *result = search(root, name); // Calls recursive search function correctly
-        if (result)
-        {
-            cout << "\nContact found:\n"
-                 << result->contact;
-        }
-        else
-        {
-            cout << "\nNo contact found with the name " << name << endl;
-        }
-        return result;
-    }
-
-    void loadNmaes(Node *node, string name[], int &i)
-    {
-        if (node == nullptr)
-            return;
-        name[i] = node->contact.name;
-        i++;
-        loadNmaes(node->right, name, i);
-        loadNmaes(node->left, name, i);
-        return;
-    }
-    void loadNunbers(Node *node, string number[], int &j)
-    {
-        if (node == nullptr)
-            return;
-        number[j] = node->contact.number;
-        j++;
-        loadNunbers(node->right, number, j);
-        loadNunbers(node->left, number, j);
-        return;
-    }
-
-    void searchContacts(Node *node)
-    {
-        const int size = 1000;
-
-        string name[size];
-        string numbers[size];
-
-        int i = 0;
-        loadNmaes(node, name, i);
-
-        int j = 0;
-        loadNunbers(node, numbers, j);
-
-        string *matchedNames = new string[i];
-        string *matchedNumbers = new string[j];
-
-
-        string currentInput = "";
-
-        while (true)
-        {
-            system("cls");
-            cout << " ---------------------------------------\n";
-            cout << "| Enter a key to search: " << currentInput << "\t\t|";
-            cout << "\n ---------------------------------------\n";
-
-            int matchCountnames = 0;
-            int matchCountnumbers = 0;
-
-            if (!currentInput.empty())
-            {
-                cout << "\n\n";
-                string lowerInput = currentInput;
-                transform(lowerInput.begin(), lowerInput.end(), lowerInput.begin(), ::tolower);
-
-                for (int i = 0; i < size; i++)
-                {
-                    string lowerName = name[i];
-                    transform(lowerName.begin(), lowerName.end(), lowerName.begin(), ::tolower);
-
-                    if (lowerName.find(lowerInput) != string::npos)
-                    {
-                        matchedNames[matchCountnames++] = name[i]; // Add matched name to matchedNames
-                    }
-                }
-                for (int i = 0; i < size; i++)
-                {
-
-                    if (numbers[i].find(lowerInput) != string::npos)
-                    {
-                        matchedNumbers[matchCountnumbers++] = numbers[i]; // Add matched name to matchedNames
-                    }
-                }
-                if (matchCountnames > 0 || matchCountnumbers > 0)
-                {
-                    for (int i = 0; i < matchCountnames; i++)
-                    {
-                        cout << matchedNames[i] << "\n";
-                    }
-                    for (int i = 0; i < matchCountnumbers; i++)
-                    {
-                        cout << matchedNumbers[i] << "\n";
-                    }
-                }
-
-                else
-                {
-                    cout << "No Contact found.\n";
-                }
-            }
-            char ch = getch();
-
-            if (ch == 13)
-            {
-                // if (matchCountnames <= 0 && matchCountnumbers <= 0)
-                // {
-                //     break;
-                // }
-                string lowerInput = currentInput;
-                transform(lowerInput.begin(), lowerInput.end(), lowerInput.begin(), ::tolower);
-
-                bool found = false;
-
-                // cout<<"jsdf"<<endl;
-                system("CLS");
-                system("CLS");
-                system("CLS");
-                system("CLS");
-                system("CLS");
-
-                system("CLS");
-                displayFullDetails(node, lowerInput, found);
-                break;
-            }
-            else if (ch == 27)
-            { // Escape key
-                cout << "\nSearch discarded. Returning to main menu.\n";
-                break;
-            }
-
-            // Handle backspace
-            else if (ch == 8)
-            {
-                if (!currentInput.empty())
-                {
-                    currentInput.pop_back();
-                }
-            }
-            else
-            {
-                currentInput += ch;
-            }
-        }
-    }
-    void displayFullDetails(Node *node, const string &currentInput, bool &found) const
-    {
-        if (!node)
-            return;
-
-        displayFullDetails(node->left, currentInput, found);
-        string lowerName = node->contact.name;
-        for (size_t i = 0; i < lowerName.length(); ++i)
-        {
-            lowerName[i] = std::tolower(lowerName[i]);
-        }
-
-        if (lowerName.find(currentInput) != string::npos || node->contact.number.find(currentInput) != string::npos)
-        {
-            cout << "\n---------------------------";
-            cout << "\nName: " << node->contact.name
-                 << "\nNumber: " << node->contact.number
-                 << "\nEmail: " << node->contact.email
-                 << "\nType: " << node->contact.type
-                 << "\nFavorite: " << (node->contact.isFavorite ? "Yes" : "No");
-            cout << "\n---------------------------";
-            found = true;
-        }
-
-        displayFullDetails(node->right, currentInput, found);
-    }
-
-    void removeFromFavorite(const string &name)
-    {
-        Node *contactNode = searchContact(name);
-        if (contactNode && contactNode->contact.isFavorite)
-        {
-            contactNode->contact.isFavorite = false;
-            cout << "\n"
-                 << name << " has been removed from favorites.\n";
-        }
-        else
-        {
-            cout << "\nContact not found or is not a favorite.\n";
-        }
-    }
-
-    void displayInOrder(Node *node) const
-    {
-        if (!node)
-            return;
-
-        displayInOrder(node->left);
-
-        cout << "\n---------------------------";
-        cout << "\nName: " << node->contact.name
-             << "\nNumber: " << node->contact.number
-             << "\nEmail: " << node->contact.email
-             << "\nType: " << node->contact.type
-             << "\nFavorite: " << (node->contact.isFavorite ? "Yes" : "No");
-        cout << "\n---------------------------";
-
-        displayInOrder(node->right);
-    }
-
-    void displayFavoriteContacts() const
-    {
-        if (root == nullptr)
-        {
-            cout << "\nNo contacts available.\n";
-        }
-        else
-        {
-            cout << "\nDisplaying favorite contacts:\n";
-            displayFavorites(root);
-        }
-    }
-};
-
-class FileManager : public BST
-{
-public:
-    void loadFromFile(const string &filename)
-    {
-        ifstream file(filename);
-        if (!file.is_open())
-        {
-            cout << "\nFailed to open file for loading.\n";
-            return;
-        }
-
-        delete root;
-        root = nullptr;
-
-        string line, name, number, email, type, favorite;
-        int contactCount = 0;
-        while (getline(file, line))
-        {
-            stringstream ss(line);
-            getline(ss, name, ' ');
-            getline(ss, number, ' ');
-            getline(ss, email, ' ');
-            getline(ss, type, ' ');
-            getline(ss, favorite, ' ');
-
-            if (!name.empty() && !number.empty() && !email.empty() && !type.empty())
-            {
-                Contact contact(name, number, email, type);
-                contact.isFavorite = (favorite == "Yes");
-
-                insert(contact); // Insert the contact into BST
-            }
-        }
-        file.close();
-    }
-
-    void saveToFile(const string &filename) const
-    {
-        ofstream file(filename);
-        if (file.is_open())
-        {
-            inOrder(root, file);
-            file.close();
-            cout << "\nContacts saved successfully to " << filename << "\n";
-        }
-        else
-        {
-            cout << "\nFailed to open file for saving.\n";
-        }
-    }
-
-    void backupContacts() const
-    {
-        ifstream src("contacts.txt", ios::binary);
-        ofstream dest("contacts_backup.txt", ios::binary);
-
-        if (src.is_open() && dest.is_open())
-        {
-            dest << src.rdbuf();
-            cout << "\nBackup created successfully as 'contacts_backup.txt'\n";
-        }
-        else
-        {
-            cout << "\nFailed to create backup.\n";
-        }
-    }
-};
-
-class Authentication : public Validation // Public inheritance for accessibility
-{
-public:
-    string password;
-    string securityAnswer;
-
-    void changePassword()
-    {
-        while (true)
-        {
-            passLogic(password, "Enter new password: "); // Correct function usage
-            if (stringValidation(password)) // Validate the password
-            {
-                break; // Exit loop if the password is valid
-            }
-            else
-            {
-                cout << "\n\tInvalid Password Pattern\n";
-            }
-        }
-        cout << "\nPassword changed successfully!\n";
-    }
-
-    void restorePassword()
-    {
-        string answer;
-        cout << "\nTo restore your password, answer the security question.";
-        while (true)
-        {
-            cout << "\nWhat is your favorite color? ";
-            getline(cin, answer);
-            if (stringValidation(answer)) // Validate the security answer
-            {
-                break; // Exit loop if the answer is valid
-            }
-            else
-            {
-                cout << "\nInvalid Answer. Please try again\n";
-            }
-        }
-        if (answer == securityAnswer)
-        {
-            cout << "\nYour password is: " << password << endl;
-        }
-        else
-        {
-            cout << "\nIncorrect answer. Cannot restore password.\n";
-        }
-    }
-
-    bool authenticate()
-    {
-        int attempts = 0;
-        string inputPassword;
-        while (attempts < 3)
-        {
-            passLogic(inputPassword, "Enter password: "); // Correct function usage
-            if (inputPassword == password)
-            {
-                return true;
-            }
-            else
-            {
-                cout << "\nIncorrect password. Try again.\n";
-                attempts++;
-            }
-        }
-        cout << "\nToo many failed attempts. Exiting settings.\n";
-        return false;
-    }
-};
-
-class PhoneBookApp : public Authentication, public FileManager
-{
-private:
-    // Validation validator; // Declare Validation object
-    BST bst; // Use BST class
-    // The password and securityAnswer fields are already in the Authentication class
-
-public:
-    PhoneBookApp()
-    {
-        // Initialize password and securityAnswer in the Authentication class
-        this->password = "123";
-        this->securityAnswer = "blue";
-    }
-
-    void load()
-    {
-        loadFromFile("contacts.txt");
-    }
-
-    void addContact()
-    {
-        string name, number, email, type;
-
-        while (true)
-        {
-            cout << "\nEnter the Name: ";
-            getline(cin, name);
-            if (nameValidation(name))
-            {
-                break;
-            }
-            else
-            {
-                cout << "\n\n\tInvalid Name. Please try again.\n";
-            }
-        }
-
-        while (true)
-        {
-            cout << "Enter type (PTCL, Local, Emergency): ";
-            getline(cin, type);
-            if (type == "PTCL" || type == "Local" || type == "Emergency")
-            {
-                break;
-            }
-            else
-            {
-                cout << "\n\n\tInvalid Type. Please try again.\n";
-            }
-        }
-
-        while (true)
-        {
-            cout << "Enter number: ";
-            getline(cin, number);
-            if (phoneNumberValidation(number, type))
-            {
-                number = formatPhoneNumber(number, type); // Format the number
-                break;
-            }
-            else
-            {
-                if (type == "Local")
-                {
-                    cout << "\nInvalid Number. Please use the format 03XX-XXXXXXX for local numbers or +92 3XX-XXXXXXX for international numbers.\n";
-                }
-                else if (type == "PTCL")
-                {
-                    cout << "\nInvalid Number. Please use the format 0XX-XXXXXXX for PTCL landline numbers.\n";
-                }
-                else if (type == "Emergency")
-                {
-                    cout << "\nInvalid Number. Emergency numbers should be 1 to 3 digits long (e.g., 15, 112, 911).\n";
-                }
-            }
-        }
-
-        while (true)
-        {
-            cout << "Enter email (must end with '@gmail.com'): ";
-            getline(cin, email);
-            if (emailValidation(email))
-            {
-                break;
-            }
-            else
-            {
-                cout << "\nInvalid email. Please ensure the email ends with '@gmail.com'.\n";
-            }
-        }
-
-        Contact newContact(name, number, email, type);
-        bst.insert(newContact);     // Insert the contact into BST
-        saveToFile("contacts.txt"); // Save after adding contact
-        cout << "\nContact added successfully!\n";
-    }
-
-    void editContact()
-    {
-        string name;
-        while (true)
-        {
-            cout << "\nEnter the name of the contact to edit: ";
-            getline(cin, name);
-            if (nameValidation(name))
-            {
-                break;
-            }
-            else
-            {
-                cout << "\n\n\tInvalid Name. Please try again.\n";
-            }
-        }
-        bst.editContact(name);
-        saveToFile("contacts.txt"); // Save after editing contact
-    }
-
-    void searchContact()
-    {
-         system("cls");
-        bst.searchContacts(root);
-    }
-
-    void markAsFavorite()
-    {
-        string name;
-        while (true)
-        {
-            cout << "\nEnter the name of the contact to mark as favorite: ";
-            getline(cin, name);
-            if (nameValidation(name))
-            {
-                break;
-            }
-            else
-            {
-                cout << "\n\n\tInvalid Name. Please try again.\n";
-            }
-        }
-        bst.markAsFavorite(name);
-        saveToFile("contacts.txt"); // Save after marking as favorite
-    }
-
-    void removeFromFavorite()
-    {
-        string name;
-        while (true)
-        {
-            cout << "\nEnter the name of the contact to remove from favorites: ";
-            getline(cin, name);
-            if (nameValidation(name))
-            {
-                break;
-            }
-            else
-            {
-                cout << "\n\n\tInvalid Name. Please try again.\n";
-            }
-        }
-        bst.removeFromFavorite(name);
-        saveToFile("contacts.txt"); // Save after removing from favorite
-    }
-
-    void displayAllContacts() const
-    {
-        if (root == nullptr)
-        {
-            cout << "\nNo contacts available.\n";
-        }
-        else
-        {
-            cout << "\nDisplaying all contacts:\n";
-            bst.displayInOrder(root);
-        }
-    }
-};
-
-int main()
-{
-    PhoneBookApp app;
-    app.load(); // Load contacts and display initial message
-       if (!app.authenticate())
-    {
-        cout << "\nFailed to authenticate. Exiting program.\n";
-        return 0; // Exit the program if authentication fails
-    }
-
-    cout << "\n--- Phone Book Management System ---";
-
-    while (true)
-    {
-        string choice;
-        cout << "\n1. Add Contact";
-        cout << "\n2. Edit Contact";
-        cout << "\n3. Search Contact";
-        cout << "\n4. Delete Contact";
-        cout << "\n5. Manage Favorite Contacts";
-        cout << "\n6. Display All Contacts";
-        cout << "\n7. Settings";
-        cout << "\n0. Exit";
-
-        while (true)
-        {
-            cout << "\nSelect an option: ";
-            getline(cin, choice);
-            if (app.menuChoice(choice))
-            {
-                break;
-            }
-            cout << "\n\t\tInvalid input.\n";
-        }
-
-        if (choice == "1")
-        {
-            app.addContact();
-        }
-        else if (choice == "2")
-        {
-            app.editContact();
-        }
-        else if (choice == "3")
-    {
-            app.searchContact();
-        }
-        else if (choice == "4")
-        {
-            while (true)
-            {
-                string del;
-                cout << "\n--- Batch Delete Menu ---";
-                cout << "\n1. Delete multiple contacts by name";
-                cout << "\n2. Delete all contacts";
-                cout << "\n0. Back";
-                while (true)
-                {
-                    cout << "\nSelect an option: ";
-                    getline(cin, del);
-                    if (app.menuChoice(del))
-                    {
-                        break;
-                    }
-                    cout << "\n\t\tInvalid input.\n";
-                }
-
-                if (del == "1")
-                {
-                    vector<string> names;
-                    string name;
-                    cout << "\nEnter names to delete (type 'done' to finish):\n";
-                    while (true)
-                    {
-                        getline(cin, name);
-                        if (name == "done")
-                        {
-                            break;
-                        }
-                        names.push_back(name);
-                    }
-                    app.deleteMultipleContacts(names);
-                    app.saveToFile("contacts.txt"); // Save after batch delete
-                }
-                else if (del == "2")
-                {
-                    app.deleteAllContacts();
-                    app.saveToFile("contacts.txt"); // Save after deleting all
-                }
-                else if (del == "0")
-                {
-                    cout << "\nBack to menu..." << endl;
-                    break; // Exit the loop and return to the main menu
-                }
-                else
-                {
-                    cout << "\nInvalid choice! Please try again.\n";
-                }
-            }
-        }
-        else if (choice == "5")
-        {
-            while (true)
-            {
-                string subChoice;
-                cout << "\n--- Favorite Contacts Menu ---";
-                cout << "\n1. Add to Favorite";
-                cout << "\n2. Remove from Favorite";
-                cout << "\n3. Display Favorite Contacts";
-                cout << "\n0. Exit";
-
-                while (true)
-                {
-                    cout << "\nSelect an option: ";
-                    getline(cin, subChoice);
-                    if (app.menuChoice(subChoice))
-                    {
-                        break;
-                    }
-                    cout << "\n\t\tInvalid input.\n";
-                }
-
-                if (subChoice == "1")
-                {
-                    app.markAsFavorite();
-                }
-                else if (subChoice == "2")
-                {
-                    app.removeFromFavorite();
-                }
-                else if (subChoice == "3")
-                {
-                    app.displayFavoriteContacts();
-                }
-                else if (subChoice == "0")
-                {
-                    cout << "\nExit Favorite Menu" << endl;
-                    break; // Exit the loop
-                }
-                else
-                {
-                    cout << "\nInvalid option! Please try again.\n";
-                }
-            }
-        }
-        else if (choice == "6")
-        {
-            app.displayAllContacts();
-        }
-        else if (choice == "7")
-        {
-            if (!app.authenticate())
-            {
-                cout << "\nAuthentication failed.\n";
-                continue; // Re-prompt main menu if authentication fails
-            }
-            while (true)
-            {
-                string settingsChoice;
-                cout << "\n--- Settings Menu ---";
-                cout << "\n1. Change Password";
-                cout << "\n2. Backup Contacts";
-                cout << "\n3. Restore Password";
-                cout << "\n0. Return to Main Menu";
-
-                while (true)
-                {
-                    cout << "\nSelect an option: ";
-                    getline(cin, settingsChoice);
-                    if (app.menuChoice(settingsChoice))
-                    {
-                        break;
-                    }
-                    cout << "\n\t\tInvalid input.\n";
-                }
-
-                if (settingsChoice == "1")
-                {
-                    app.changePassword();
-                }
-                else if (settingsChoice == "2")
-                {
-                    app.backupContacts();
-                }
-                else if (settingsChoice == "3")
-                {
-                    app.restorePassword();
-                }
-                else if (settingsChoice == "0")
-                {
-                    cout << "\nExit Settings Menu" << endl;
-                    break;
-                }
-                else
-                {
-                    cout << "\nInvalid choice!" << endl;
-                }
-            }
-        }
-        else if (choice == "0")
-        {
-            cout << "\nExiting...\n";
-            break;
-        }
-        else
-        {
-            cout << "\n\nInvalid option! Please try again!\n";
-        }
-    }
-
-    return 0;
+    return true;
 }
 
-// Local (Mobile) Format: 03XX-XXXXXXX or +92 3XX-XXXXXXX
+bool nameValidation(const string &str)
+{
+    if (str.empty())
+    {
+        return false;
+    }
 
-// PTCL (Landline) Format: 0XX-XXXXXXX
+    for (char c : str)
+    {
+        if (!isalpha(c) && c != ' ')
+        {
+            return false;
+        }
+    }
+    return true;
+}
 
-// Emergency Number Format: X, XX, XXX
+bool phoneValidation(const string &phone)
+{
+    // Check if the phone number is not empty
+    if (phone.empty())
+    {
+        return false;
+    }
+
+    // Check if the phone number length is less than or equal to 25 characters
+    if (phone.length() > 25)
+    {
+        return false;
+    }
+
+    // Check if all characters in the phone number are digits
+    for (char c : phone)
+    {
+        if (!isdigit(c))
+        {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+bool emailValidation(const string &email)
+{
+    const string gmailSuffix = "@gmail.com";
+
+    if (email.empty())
+    {
+        return false;
+    }
+
+    for (char ch : email)
+    {
+        if (isspace(ch))
+        {
+            return false;
+        }
+    }
+
+    if (email.size() <= gmailSuffix.size() + 4)
+    {
+        return false;
+    }
+
+    string prefix = email.substr(0, email.size() - gmailSuffix.size());
+    string suffix = email.substr(email.size() - gmailSuffix.size());
+
+    if (suffix != gmailSuffix)
+    {
+        return false;
+    }
+
+    for (char ch : prefix)
+    {
+        if (!islower(ch) && !isdigit(ch) && ch != '.' && ch != '_' && ch != '-')
+        {
+            return false;
+        }
+    }
+    return true;
+}
+
+// String validation to check if not empty and not only spaces
+bool stringValidation(const string &str)
+{
+    if (str.empty())
+    {
+        return false;
+    }
+
+    for (char ch : str)
+    {
+        if (!isspace(ch))
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+// Function for password logic with masking and reveal option
+void passLogic(string &password, const string &promptText)
+{
+    char pass[32] = {0};
+    char ch;
+    bool enter = false;
+    int i = 0;
+    bool show = false;
+
+    cout << promptText;
+
+    while (!enter)
+    {
+        ch = _getch();
+
+        if (isalnum(ch))
+        {
+            pass[i] = ch;
+            if (show)
+            {
+                cout << ch;
+            }
+            else
+            {
+                cout << "*";
+            }
+            i++;
+        }
+
+        if (ch == '\b' && i >= 1) // Handle backspace
+        {
+            cout << "\b \b";
+            i--;
+        }
+
+        if (ch == '\r') // Enter key
+        {
+            enter = true;
+        }
+
+        if (ch == '\t') // Toggle show/hide password
+        {
+            show = !show;
+            cout << "\r" << promptText;
+            for (int j = 0; j < i; j++)
+            {
+                cout << (show ? pass[j] : '*');
+            }
+        }
+    }
+
+    pass[i] = '\0';
+    password = pass;
+}
+
+class Contact
+{
+private:
+    string name;
+    string phone;
+    string email;
+    bool isFavorite;
+    bool isBlocked;
+
+public:
+    // Default Constructor
+    Contact()
+        : name(""), phone(""), email(""), isFavorite(false), isBlocked(false) {}
+
+    // Parameterized Constructor
+    Contact(string n, string p = "", string e = "")
+        : name(n), phone(p), email(e), isFavorite(false), isBlocked(false) {}
+
+    // Getters
+    string getName() const { return name; }
+    string getPhone() const { return phone; }
+    string getEmail() const { return email; }
+    bool getBlockedStatus() const { return isBlocked; }
+    bool getFavoriteStatus() const { return isFavorite; }
+
+    // Setters
+    void setPhone(const string &p) { phone = p; }
+    void setEmail(const string &e) { email = e; }
+    void setName(const string &n) { name = n; }
+    void setBlockedStatus(bool status) { isBlocked = status; }
+    void setFavoriteStatus(bool status) { isFavorite = status; }
+};
+
+class FileManager; // Forward declaration

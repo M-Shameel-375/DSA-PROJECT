@@ -1007,3 +1007,82 @@ public:
     {
         bst.addContact(contact);
     }
+
+     void deleteContactByName(const string &name)
+    {
+        bst.deleteContactByName(name);
+    }
+
+    void deleteAllContacts()
+    {
+        bst.deleteAllContacts();
+    }
+
+    void saveAllContactsToSecondary()
+    {
+        bst.saveAllContactsToSecondary(fileManager);
+    }
+
+    bool contactExists(const string &name) const
+    {
+        return bst.contactExists(name);
+    }
+
+    Contact *getContact(const string &name) const
+    {
+        return bst.getContact(name);
+    }
+
+    void display() const
+    {
+        bst.display();
+    }
+
+    void displayFavorites() const
+    {
+        bst.displayFavorites();
+    }
+    void displayBlocked() const
+    {
+        bst.displayBlocked();
+    }
+    // New function to update a contact
+    void updateContact(const string &oldName, const string &newName, const string &newPhone, const string &newEmail)
+    {
+        bst.updateContact(oldName, newName, newPhone, newEmail);
+        saveContacts(); // Save changes to the primary file
+    }
+    // Function to mark a contact as favorite
+    void markAsFavorite(const string &name)
+    {
+        bst.markAsFavorite(name);
+        saveContacts();
+        // Save changes to the primary file
+    }
+    // Function to unmark a contact as favorite
+    void unmarkAsFavorite(const string &name)
+    {
+        bst.unmarkAsFavorite(name);
+        saveContacts();
+        // Save changes to the primary file
+    }
+
+    void markAsBlock(const string &name)
+    {
+        bst.markAsBlock(name);
+        saveContacts();
+        // Save changes to the primary file
+    }
+    // Function to unmark a contact as favorite
+    void unmarkAsBlock(const string &name)
+    {
+        bst.unmarkAsUnBlock(name);
+        saveContacts();
+        // Save changes to the primary file
+    }
+    // Method to search contacts
+    void searchContacts() const
+    {
+        bst.searchContacts(bst.getRoot());
+    }
+};

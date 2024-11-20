@@ -958,3 +958,52 @@ public:
         return false;
     }
 };
+
+class PhoneBookApp : protected Authentication
+{
+private:
+    BST bst;
+    FileManager fileManager;
+
+public:
+    PhoneBookApp(const string &primaryFile, const string &secondaryFile)
+        : fileManager(primaryFile, secondaryFile) {}
+
+    bool performLogin()
+    {
+        return authenticate();
+    }
+    // Public methods to change and restore password
+    void changePassword()
+    {
+        Authentication::changePassword();
+    }
+    void restorePassword()
+    {
+        Authentication::restorePassword();
+    }
+
+    void loadContacts()
+    {
+        fileManager.loadContacts(bst);
+    }
+
+    void saveContacts() const
+    {
+        fileManager.saveContacts(bst);
+    }
+
+    void saveDeletedContact(const Contact &contact) const
+    {
+        fileManager.saveDeletedContact(contact);
+    }
+
+    void restoreContacts()
+    {
+        fileManager.restoreContacts(bst);
+    }
+
+    void addContact(Contact contact)
+    {
+        bst.addContact(contact);
+    }

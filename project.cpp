@@ -475,3 +475,115 @@ public:
         }
         return root;
     }
+    
+    // Public method to delete a contact by name
+    void deleteContactByName(const string &name)
+    {
+        root = deleteNode(root, name);
+    }
+
+    // Public method to search for a contact
+    Node *searchContact(const string &name) const
+    {
+        return search(root, name);
+    }
+
+    // Public method to update a contact
+    void updateContact(const string &oldName, const string &newName, const string &newPhone, const string &newEmail)
+    {
+        Node *node = search(root, oldName);
+        if (node)
+        {
+            if (!newName.empty() && newName != oldName)
+            {
+                // Remove the old node and insert a new one with updated name
+                Contact updatedContact = node->contact;
+                updatedContact.setName(newName);
+                if (!newPhone.empty())
+                {
+                    updatedContact.setPhone(newPhone);
+                }
+                if (!newEmail.empty())
+                {
+                    updatedContact.setEmail(newEmail);
+                }
+                deleteContactByName(oldName); // Remove old contact
+                addContact(updatedContact);   // Insert updated contact
+            }
+            else
+            {
+                // Update phone and email
+                if (!newPhone.empty())
+                {
+                    node->contact.setPhone(newPhone);
+                }
+                if (!newEmail.empty())
+                {
+                    node->contact.setEmail(newEmail);
+                }
+            }
+            cout << "Contact details updated.\n";
+        }
+        else
+        {
+            cout << "Contact not found.\n";
+        }
+    }
+
+    // Function to mark a contact as favorite
+    void markAsFavorite(const string &name)
+    {
+        Node *node = search(root, name);
+        if (node)
+        {
+            node->contact.setFavoriteStatus(true);
+            cout << "Contact " << name << " marked as favorite.\n";
+        }
+        else
+        {
+            cout << "Contact not found.\n";
+        }
+    }
+    // Function to unmark a contact as favorite
+    void unmarkAsFavorite(const string &name)
+    {
+        Node *node = search(root, name);
+        if (node)
+        {
+            node->contact.setFavoriteStatus(false);
+            cout << "Contact " << name << " unmarked as favorite.\n";
+        }
+        else
+        {
+            cout << "Contact not found.\n";
+        }
+    }
+
+    // Function to mark a contact as favorite
+    void markAsBlock(const string &name)
+    {
+        Node *node = search(root, name);
+        if (node)
+        {
+            node->contact.setBlockedStatus(true);
+            cout << "Contact " << name << " marked as favorite.\n";
+        }
+        else
+        {
+            cout << "Contact not found.\n";
+        }
+    }
+    // Function to unmark a contact as favorite
+    void unmarkAsUnBlock(const string &name)
+    {
+        Node *node = search(root, name);
+        if (node)
+        {
+            node->contact.setBlockedStatus(false);
+            cout << "Contact " << name << " unmarked as favorite.\n";
+        }
+        else
+        {
+            cout << "Contact not found.\n";
+        }
+    }

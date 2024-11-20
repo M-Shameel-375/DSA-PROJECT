@@ -1479,7 +1479,23 @@ int main()
                     // Restore contacts from the secondary file
                     app.restoreContacts();
                 }
-              
+                else if (settingsChoice == "4")
+                {
+                    system("CLS");
+                    while (true)
+                    {
+                        string mark;
+                        string subChoice;
+                        cout << "\n\t\t ______________________________________________\n";
+                        cout << "\t\t|       |" << setw(40) << "|\n";
+                        cout << "\t\t| [1]   |     Add to Block" << setw(23) << "|\n";
+                        cout << "\t\t| [2]   |     Remove From Block" << setw(18) << "|\n";
+                        cout << "\t\t| [3]   |     Display Block Contacts" << setw(13) << "|\n";
+                        cout << "\t\t| [0]   |     Back" << setw(31) << "|\n";
+                        cout << "\t\t|_______|______________________________________|\n";
+
+                      
+    }
 
     return 0;
 }

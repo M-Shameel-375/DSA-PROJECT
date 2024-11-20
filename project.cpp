@@ -1448,6 +1448,7 @@ int main()
                 cout << "\t\t| [1]   |     Change Password" << setw(20) << "|\n";
                 cout << "\t\t| [2]   |     Restore Password" << setw(19) << "|\n";
                 cout << "\t\t| [3]   |     Restore Contacts" << setw(19) << "|\n";
+                cout << "\t\t| [4]   |     Manage Block Contact" << setw(15) << "|\n";
                 cout << "\t\t| [0]   |     Back" << setw(31) << "|\n";
                 cout << "\t\t|_______|______________________________________|\n";
 
@@ -1479,6 +1480,6 @@ int main()
                     app.restoreContacts();
                 }
               
-            }
+
     return 0;
-}}
+}

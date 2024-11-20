@@ -224,3 +224,254 @@ public:
 };
 
 class FileManager; // Forward declaration
+
+class BST
+{
+private:
+    struct Node
+    {
+        Contact contact;
+        Node *left;
+        Node *right;
+
+        Node(Contact c) : contact(c), left(nullptr), right(nullptr) {}
+    };
+
+    Node *root;
+
+    Node *insert(Node *node, Contact contact)
+    {
+        if (node == nullptr)
+        {
+            return new Node(contact);
+        }
+        if (contact.getName() < node->contact.getName())
+        {
+            node->left = insert(node->left, contact);
+        }
+        else if (contact.getName() > node->contact.getName())
+        {
+            node->right = insert(node->right, contact);
+        }
+        else
+        {
+            // Contact already exists
+            return node;
+        }
+        return node;
+    }
+
+    Node *search(Node *node, const string &name) const
+    {
+        if (node == nullptr || node->contact.getName() == name)
+        {
+            return node;
+        }
+        if (name < node->contact.getName())
+        {
+            return search(node->left, name);
+        }
+        return search(node->right, name);
+    }
+
+    void deleteTree(Node *node)
+    {
+        if (node == nullptr)
+        {
+            return;
+        }
+        deleteTree(node->left);
+        deleteTree(node->right);
+        delete node;
+    }
+
+    void saveContactsToSecondary(Node *node, const FileManager &fileManager);
+
+    void writeContactsToFile(ofstream &file, const Node *node) const
+    {
+        if (node != nullptr)
+        {
+            file << node->contact.getName() << ","
+                 << node->contact.getPhone() << ","
+                 << node->contact.getEmail() << ","
+                 << (node->contact.getFavoriteStatus() ? "Yes" : "No") << ","
+                 << (node->contact.getBlockedStatus() ? "Yes" : "No") << "\n";
+            writeContactsToFile(file, node->left);
+            writeContactsToFile(file, node->right);
+        }
+    }
+
+    // Helper function to display blocked contacts
+    void displayBlockContacts(Node *node, bool &found) const
+    {
+        if (node != nullptr)
+        {
+            displayBlockContacts(node->left, found);
+            if (node->contact.getBlockedStatus())
+            {
+                found = true;
+                cout << "---------------------------\n";
+                cout << "Name: " << node->contact.getName() << "\n";
+                cout << "Number: " << node->contact.getPhone() << "\n";
+                cout << "Email: " << node->contact.getEmail() << "\n";
+                cout << "Blocked: Yes\n";
+                cout << "---------------------------\n";
+            }
+            displayBlockContacts(node->right, found);
+        }
+    }
+
+public:
+    BST() : root(nullptr) {}
+
+    // Public method to get the root node
+    Node *getRoot() const
+    {
+        return root;
+    }
+
+    void addContact(Contact contact)
+    {
+        root = insert(root, contact);
+    }
+
+    void deleteAllContacts()
+    {
+        deleteTree(root);
+        root = nullptr;
+        cout << "\nAll contacts have been deleted.\n";
+    }
+
+    void saveAllContactsToSecondary(const FileManager &fileManager)
+    {
+        saveContactsToSecondary(root, fileManager);
+    }
+
+    bool contactExists(const string &name) const
+    {
+        return search(root, name) != nullptr;
+    }
+
+    Contact *getContact(const string &name) const
+    {
+        Node *node = search(root, name);
+        if (node)
+        {
+            return &(node->contact);
+        }
+        return nullptr;
+    }
+
+    void displayAllContacts(Node *node) const
+    {
+        if (node != nullptr)
+        {
+            displayAllContacts(node->left);
+            cout << "---------------------------\n";
+            cout << "Name: " << node->contact.getName() << "\n";
+            cout << "Number: " << node->contact.getPhone() << "\n";
+            cout << "Email: " << node->contact.getEmail() << "\n";
+            cout << "Favorite: " << (node->contact.getFavoriteStatus() ? "Yes" : "No") << "\n";
+            cout << "Blocked: " << (node->contact.getBlockedStatus() ? "Yes" : "No") << "\n";
+            cout << "---------------------------\n";
+            displayAllContacts(node->right);
+        }
+        else
+        {
+            cout << "\n\t\tNo Contact Found\n";
+        }
+    }
+
+    void displayFavoriteContacts(Node *node) const
+    {
+        if (node != nullptr)
+        {
+            displayFavoriteContacts(node->left);
+            if (node->contact.getFavoriteStatus())
+            {
+                cout << "---------------------------\n";
+                cout << "Name: " << node->contact.getName() << "\n";
+                cout << "Number: " << node->contact.getPhone() << "\n";
+                cout << "Email: " << node->contact.getEmail() << "\n";
+                cout << "Favorite: Yes\n";
+                cout << "---------------------------\n";
+            }
+            displayFavoriteContacts(node->right);
+        }
+        else
+        {
+            cout << "\n\t\tNo Contact Found\n";
+        }
+    }
+
+    void displayBlocked() const
+    {
+        bool found = false;
+        displayBlockContacts(root, found);
+        if (!found)
+        {
+            cout << "\n\t\tNo Contact Found\n";
+        }
+    }
+
+    void display() const
+    {
+        displayAllContacts(root);
+    }
+    void displayFavorites() const
+    {
+        displayFavoriteContacts(root);
+    }
+
+    friend class FileManager; // Grant FileManager access to BST's private members
+
+    // Helper function to find the node with the minimum value
+    Node *minValueNode(Node *node)
+    {
+        Node *current = node;
+        while (current && current->left != nullptr)
+        {
+            current = current->left;
+        }
+        return current;
+    }
+
+    // Helper function to delete a contact
+    Node *deleteNode(Node *root, const string &name)
+    {
+        if (root == nullptr)
+        {
+            return root;
+        }
+
+        if (name < root->contact.getName())
+        {
+            root->left = deleteNode(root->left, name);
+        }
+        else if (name > root->contact.getName())
+        {
+            root->right = deleteNode(root->right, name);
+        }
+        else
+        {
+            // Node to be deleted found
+            if (root->left == nullptr)
+            {
+                Node *temp = root->right;
+                delete root;
+                return temp;
+            }
+            else if (root->right == nullptr)
+            {
+                Node *temp = root->left;
+                delete root;
+                return temp;
+            }
+
+            // Node with two children: Get the inorder successor
+            Node *temp = minValueNode(root->right);
+            root->contact = temp->contact;
+            root->right = deleteNode(root->right, temp->contact.getName());
+        }
+        return root;
+    }

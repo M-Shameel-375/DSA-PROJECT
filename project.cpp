@@ -566,7 +566,7 @@ public:
         if (node)
         {
             node->contact.setBlockedStatus(true);
-            cout << "Contact " << name << " marked as favorite.\n";
+            cout << "Contact " << name << " marked as blocked.\n";
         }
         else
         {
@@ -580,7 +580,7 @@ public:
         if (node)
         {
             node->contact.setBlockedStatus(false);
-            cout << "Contact " << name << " unmarked as favorite.\n";
+            cout << "Contact " << name << " unmarked as blocked.\n";
         }
         else
         {

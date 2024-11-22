@@ -171,6 +171,7 @@ void passLogic(string &password, const string &promptText)
 
         if (ch == '\r') // Enter key
         {
+            
             enter = true;
         }
 

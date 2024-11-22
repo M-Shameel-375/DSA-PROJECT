@@ -5,7 +5,6 @@
 #include <algorithm>
 #include <fstream>
 #include <Windows.h>
-#include <vector>
 #include <conio.h>
 
 using namespace std;
@@ -42,7 +41,7 @@ bool nameValidation(const string &str)
 
     for (char c : str)
     {
-        if (!isalpha(c) && c != ' ')
+        if (c == ' ')
         {
             return false;
         }
@@ -733,10 +732,10 @@ public:
 
             if (ch == 13)
             {
-                // if (matchCountnames <= 0 && matchCountnumbers <= 0)
-                // {
-                //     break;
-                // }
+                if (matchCountnames <= 0 && matchCountnumbers <= 0)
+                {
+                    break;
+                }
                 string lowerInput = currentInput;
                 transform(lowerInput.begin(), lowerInput.end(), lowerInput.begin(), ::tolower);
 
